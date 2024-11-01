@@ -1,0 +1,11 @@
+from .text_classification import *
+
+import sys
+
+
+def create_model(config):
+    task = config.TASK
+    model_type = config.MODEL.MODEL_TYPE + "Module"
+    module = sys.modules[f"models.{task}"]
+    Model = module.__getattribute__(model_type)
+    return Model(config.MODEL)
