@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "learndeep"
+version = "0.1.0"
+description = ""
+authors = ["'zhangyiqian' <'496115313@qq.com'>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+lightning = "^2.3.0"
+torchtext = "0.15.2" # 不支持win
+torch = { version = "2.0.1", source="torch" }
+torchaudio = { version = "2.0.2", source="torch" }
+torchvision = { version = "0.15.2", source="torch" }
+charset-normalizer = "3.1.0"
+numpy = "1.26.4"
+protobuf = "3.20.1"
+
+[[tool.poetry.source]]
+name = "orgin"
+url = "http://10.25.20.243:8081/repository/pipy-group/simple"
+priority = "primary"
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "supplemental"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
