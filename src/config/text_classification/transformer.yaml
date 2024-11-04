@@ -13,12 +13,12 @@ DATASET:
   ORIGIN: TorchTextDataModule
   NAME: AG_NEWS
   TOKENIZER_NAME: google-bert/bert-base-uncased
-  BATCH_SIZE: 32
-  NUM_WORKERS: 0
+  MAX_LENGTH: 512
+  BATCH_SIZE: 64
+  NUM_WORKERS: 4
   VAL_RATE: 0.2
 # train config
 TRAIN:
-  NUM_WORKERS: 16 # Number of workers
   BATCH_SIZE: 64 # Size of batches
   START_EPOCH: 1 # Start epoch
   END_EPOCH: 11 # End epoch
@@ -47,6 +47,7 @@ MODEL:
 
     INPUT_VOCAB_SIZE:
     NUM_CLASSES:
+    MAX_LENGTH:
   LOSS:
   OPTIMIZERS:
 
@@ -54,9 +55,9 @@ MODEL:
 LOGGER:
   ROOT_FOLDER: ./logger
 
-  SAVE_CHECKPOINT_EPOCH: 100      # 保存间隔
-  LOG_EVERY_STEPS: 100
-  VAL_EVERY_STEPS: 100
+  SAVE_CHECKPOINT_EPOCH: 1      # 保存间隔
+  CHECK_VAL_EPOCH: 1
+  LOG_EVERY_STEPS: 1000
   TENSORBOARD: true
   WANDB:
     OFFLINE: false

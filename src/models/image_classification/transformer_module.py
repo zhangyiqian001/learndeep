@@ -64,8 +64,7 @@ class TransformerModel(nn.Module):
             # tgt_padding_mask,
             # memory_key_padding_mask
         )
-
-        return self.ff(outs)
+        return torch.softmax(self.ff(outs), dim=1)
 
 
 class TransformerModule(BaseModelModule):
@@ -73,12 +72,3 @@ class TransformerModule(BaseModelModule):
         super().__init__(config)
         self.config = config
         self.model = TransformerModel(config.ARCH_CONFIG)
-
-    def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
-        inputs, target = batch
-        output = self(inputs, target)
-        loss = torch.nn.functional.cross_entropy(output, target)
-        return loss
-
-    def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.SGD(self.model.parameters(), lr=0.1)

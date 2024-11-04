@@ -15,6 +15,7 @@ def create_trainer(config):
     else:
         ddp_strategy = 'auto'
     trainer = L.Trainer(
+        fast_dev_run=config.DEBUG,
         benchmark=True,
         max_epochs=config.TRAIN.END_EPOCH,
         accelerator=config.ACCELERATOR,
@@ -28,7 +29,7 @@ def create_trainer(config):
         enable_progress_bar=True,
         logger=vis_loggers,
         callbacks=callbacks,
-        check_val_every_n_epoch=config.LOGGER.VAL_EVERY_STEPS,
+        check_val_every_n_epoch=config.LOGGER.CHECK_VAL_EPOCH,
     )
 
     return trainer

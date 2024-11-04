@@ -5,3 +5,13 @@
 - 同一数据集不同模型结果评估
 - 支持Loss、metric结果可视化（tensorboard，wandb，）
 - 支持Transformer可视化
+
+#### 训练脚本
+```sh
+python .\train.py  .\config\text_classification\transformer.yaml
+```
+
+#### 可视化脚本
+```sh
+tensorboard --logdir .\\logger\\Transformer\\Transformer\\tensorboard\\
+```

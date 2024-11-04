@@ -2,20 +2,45 @@ from pathlib import Path
 
 import torch
 from torch.utils.data.dataset import random_split
+from torch.utils.data import Dataset
 from torchtext.data.functional import to_map_style_dataset
 from torchtext.datasets import DATASETS
 from transformers import AutoTokenizer
-
 from datasets.base_datamodule import BaseDataModule
+
+
+class TextClassificationDataset(Dataset):
+    def __init__(self, iter_data, tokenizer, max_length, num_classes, device):
+        self.device = device
+        self.num_classes = num_classes
+        self.data = list(iter_data)
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def __getitem__(self, index):
+        inputs = self.tokenizer(
+            self.data[index][1],
+            padding="max_length",
+            max_length=self.max_length
+        )['input_ids']
+        targets = (torch.nn.functional.one_hot(torch.tensor(self.data[index][0]-1), num_classes=self.num_classes))
+        inputs = torch.tensor(inputs, dtype=torch.int64)
+        targets = torch.tensor(targets, dtype=torch.float32)
+        return inputs.to(self.device), targets.to(self.device)
+
+    def __len__(self):
+        return len(self.data)
 
 
 class TorchTextDataModule(BaseDataModule):
     def __init__(self, config):
         super().__init__(config)
+        config.MODEL.ARCH_CONFIG.MAX_LENGTH = config.DATASET.MAX_LENGTH
         self.num_classes = None
         self.config = config
         self.device = config.DEVICE[0]
         self.name = config.DATASET.NAME
+        self.max_length = config.DATASET.MAX_LENGTH
         self.data_dir = Path(config.ROOT) / "data" / config.TASK
         self.tokenizer = AutoTokenizer.from_pretrained(
             config.DATASET.TOKENIZER_NAME,
@@ -25,28 +50,18 @@ class TorchTextDataModule(BaseDataModule):
         self.val_rate = config.DATASET.VAL_RATE
 
     def prepare_data(self) -> None:
-        train_iter, test_iter = DATASETS[self.name](self.data_dir)
+        self.train_iter, self.test_iter = DATASETS[self.name](self.data_dir)
         if "classification" in self.config.TASK:
-            self.num_classes = len(set([label for label, _ in train_iter]))
+            self.num_classes = len(set([label for label, _ in self.train_iter]))
             self.config.MODEL.ARCH_CONFIG.NUM_CLASSES = self.num_classes
 
-        # BUG 不支持num_workers>0, 预计数据为单个csv，无法多进程
-        train_dataset = to_map_style_dataset(train_iter)
-        test_dataset = to_map_style_dataset(test_iter)
-
-        num_train = int(len(list(train_dataset)) * (1 - self.val_rate))
+    def setup(self, stage: str) -> None:
+        train_dataset = TextClassificationDataset(self.train_iter, self.tokenizer, self.max_length, self.num_classes,
+                                                  self.device)
+        test_dataset = TextClassificationDataset(self.test_iter, self.tokenizer, self.max_length, self.num_classes,
+                                                 self.device)
+        num_train = int(len(train_dataset) * (1 - self.val_rate))
         split_train_, split_valid_ = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
-        self.train_set = train_dataset
+        self.train_set = split_train_
         self.val_set = split_valid_
         self.test_set = test_dataset
-        self.collate_fn = self._collate_fn
-
-    def _collate_fn(self, batch):
-        inputs = self.tokenizer([text for _, text in batch], padding=True)['input_ids']
-        targets = (torch.nn.functional.one_hot(torch.tensor([label - 1 for label, _ in batch]),
-                                               num_classes=self.num_classes))
-        inputs = torch.tensor(inputs, dtype=torch.int64)
-        return inputs.to(self.device), targets.to(self.device)
-
-    def setup(self, stage: str) -> None:
-        pass

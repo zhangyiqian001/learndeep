@@ -14,7 +14,6 @@ from utils.trainers import create_trainer
 # os.environ["PL_TORCH_DISTRIBUTED_BACKEND"] = "gloo"
 app = typer.Typer()
 
-
 def logger_info(config, key):
     OmegaConf.to_container(config)
     data = json.dumps(OmegaConf.to_container(config)[key], indent=4, ensure_ascii=False, sort_keys=False,
@@ -22,9 +21,12 @@ def logger_info(config, key):
     return data
 
 
-# python .\train.py .\config\transformer.yaml
+# python .\train.py .\config\text_classification\transformer.yaml
 @app.command()
 def main(config_path):
+    # torch.set_float32_matmul_precision('medium' | 'high')
+    torch.set_float32_matmul_precision('medium')
+
     config = OmegaConf.load(config_path)
 
     # 1、create logger

@@ -18,7 +18,7 @@ class BaseDataModule(LightningDataModule):
         self.batch_size = config.DATASET.BATCH_SIZE
         self.num_workers = config.DATASET.NUM_WORKERS
 
-        self.persistent_workers = False
+        self.persistent_workers = True
         # 如果数据集大小不能被批处理大小整除,删除最后一个未完成的批
         self.drop_last = True
         self.collate_fn = None
@@ -31,7 +31,6 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
-            collate_fn=self.collate_fn
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -42,7 +41,6 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
-            collate_fn=self.collate_fn
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -53,7 +51,6 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
-            collate_fn=self.collate_fn
         )
 
     def tokenizer(self, line):
