@@ -25,15 +25,10 @@ TRAIN:
   RESUME: '' # Experiment path to be resumed training
   # PRETRAINED_VAE: ''
   PRETRAINED: '' # Pretrained model path
-
-  OPTIM:
-    TYPE: 'Adan' # Optimizer type
-    LR: 4e-4 # Learning rate
-
+# eval config
 EVAL:
-
+# test config
 TEST:
-
 # model config
 MODEL:
   MODEL_TYPE: Transformer
@@ -41,7 +36,7 @@ MODEL:
     NUM_ENCODER_LAYERS: 5
     NUM_DECODER_LAYERS: 5
     NUM_HEADS: 8
-#    DIM_FEEDFORWARD: 512
+    # DIM_FEEDFORWARD: 512
     EMBED_SIZE: 512
     DROPOUT: 0.1
 
@@ -49,8 +44,17 @@ MODEL:
     NUM_CLASSES:
     MAX_LENGTH:
   LOSS:
-  OPTIMIZERS:
-
+    TYPE: CrossEntropyLoss
+  OPTIM:
+    TYPE: Adan # Optimizer type
+    ARGS:
+      LR: 4e-4 # Learning rate
+  METRIC:
+    TYPE: Accuracy
+    ARGS:
+      TASK: multiclass
+      TOP_K: 1
+      NUM_CLASSES:
 # logger config
 LOGGER:
   ROOT_FOLDER: ./logger
@@ -63,6 +67,3 @@ LOGGER:
     OFFLINE: false
     PROJECT: null
     RESUME_ID: null
-
-#
-METRIC:

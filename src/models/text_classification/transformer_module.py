@@ -69,6 +69,6 @@ class TransformerModel(nn.Module):
 
 class TransformerModule(BaseModelModule):
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__()
         self.config = config
         self.model = TransformerModel(config.ARCH_CONFIG)

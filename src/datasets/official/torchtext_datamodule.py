@@ -54,6 +54,7 @@ class TorchTextDataModule(BaseDataModule):
         if "classification" in self.config.TASK:
             self.num_classes = len(set([label for label, _ in self.train_iter]))
             self.config.MODEL.ARCH_CONFIG.NUM_CLASSES = self.num_classes
+            self.config.MODEL.METRIC.ARGS.NUM_CLASSES = self.num_classes
 
     def setup(self, stage: str) -> None:
         train_dataset = TextClassificationDataset(self.train_iter, self.tokenizer, self.max_length, self.num_classes,

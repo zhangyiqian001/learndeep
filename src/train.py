@@ -88,6 +88,7 @@ def main(config_path):
     logger.info("Training ends!")
 
 
+
 if __name__ == '__main__':
     app()
     # main("config/text_classification/transformer.yaml")
