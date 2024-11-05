@@ -132,6 +132,7 @@ def define_loss(config):
 def define_metric(config):
     args = OmegaConf.to_container(config.METRIC.ARGS)
     args = {key.lower(): value for key, value in args.items()}
+    args['num_classes'] = config.NUM_CLASSES
     return METRIC[config.METRIC.TYPE](**args)
 
 
@@ -142,14 +143,16 @@ class BaseModelModule(LightningModule):
         self.model = None
         self.config = None
 
-    def forward(self, inputs: Tensor, target: Tensor) -> Tensor:
-        return self.model(inputs, target)
+    def forward(self, *args, **kwargs) -> Tensor:
+        return self.model(args[0])
 
     def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
         inputs, target = batch
-        output = self(inputs, target)
-        loss = define_loss(self.config)(output, target)
-        metric = define_metric(self.config).to(self.device)
+        output = self(inputs)
+        if "classification" in self.config.TASK:
+            output = torch.nn.functional.softmax(output, dim=1)
+        loss = define_loss(self.config.MODEL)(output, target)
+        metric = define_metric(self.config.MODEL).to(self.device)
         acc = metric(output.argmax(1), target.argmax(1))
         values = {"loss": loss, "acc": acc}
         self.log_dict(values, prog_bar=True)
@@ -157,21 +160,25 @@ class BaseModelModule(LightningModule):
 
     def validation_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
         inputs, target = batch
-        output = self(inputs, target)
-        loss = define_loss(self.config)(output, target)
-        metric = define_metric(self.config).to(self.device)
+        output = self(inputs)
+        if "classification" in self.config.TASK:
+            output = torch.nn.functional.softmax(output, dim=1)
+        loss = define_loss(self.config.MODEL)(output, target)
+        metric = define_metric(self.config.MODEL).to(self.device)
         acc = metric(output.argmax(1), target.argmax(1))
-        values = {"loss": loss, "acc": acc}  # add more items if needed
+        values = {"loss": loss, "acc": acc}
         self.log_dict(values, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
         inputs = batch
         output = self(inputs)
+        if "classification" in self.config.TASK:
+            output = torch.nn.functional.softmax(output, dim=1)
         return output
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        args = OmegaConf.to_container(self.config.OPTIM.ARGS)
+        args = OmegaConf.to_container(self.config.MODEL.OPTIM.ARGS)
         args = {key.lower(): value for key, value in args.items()}
         args['params'] = self.model.parameters()
-        return OPTIM[self.config.OPTIM.TYPE](**args)
+        return OPTIM[self.config.MODEL.OPTIM.TYPE](**args)

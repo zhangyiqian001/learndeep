@@ -43,15 +43,16 @@ class TransformerModel(nn.Module):
         self.transformer = nn.Transformer(
             d_model=config.EMBED_SIZE,
             nhead=config.NUM_HEADS,
-            num_encoder_layers=config.NUM_ENCODER_LAYERS,
-            num_decoder_layers=config.NUM_DECODER_LAYERS,
-            dropout=config.DROPOUT
+            num_encoder_layers=config.ARCH_CONFIG.NUM_ENCODER_LAYERS,
+            num_decoder_layers=config.ARCH_CONFIG.NUM_DECODER_LAYERS,
+            dropout=config.ARCH_CONFIG.DROPOUT
         )
 
-        self.ff = nn.Linear(config.MAX_LENGTH * config.EMBED_SIZE, config.NUM_CLASSES)
+        self.ff = nn.Linear(config.ARCH_CONFIG.MAX_LENGTH * config.ARCH_CONFIG.EMBED_SIZE, config.NUM_CLASSES)
 
-    def forward(self, inputs: Tensor, target: Tensor) -> Tensor:
-        src_emb = self.pos_enc(self.src_embedding(inputs))
+    def forward(self, args) -> Tensor:
+        input_ids = args['input_ids']
+        src_emb = self.pos_enc(self.src_embedding(input_ids))
         # tgt_emb = self.pos_enc(self.tgt_embedding(trg))
 
         outs = self.transformer(
@@ -64,11 +65,11 @@ class TransformerModel(nn.Module):
             # tgt_padding_mask,
             # memory_key_padding_mask
         )
-        return torch.softmax(self.ff(outs.reshape(inputs.shape[0], -1)), dim=1)
+        return self.ff(outs.reshape(input_ids.shape[0], -1))
 
 
 class TransformerModule(BaseModelModule):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.model = TransformerModel(config.ARCH_CONFIG)
+        self.model = TransformerModel(config.MODEL)

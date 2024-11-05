@@ -1,0 +1,62 @@
+# base config
+NAME: AlexNet
+ACCELERATOR: gpu
+DEVICE:
+  - 0
+
+DEBUG: False
+SEED_VALUE: 1234
+TASK: image_classification
+ROOT: D:\\learndeep\\src
+# dataset config
+DATASET:
+  ORIGIN: TorchVisionDataModule
+  NAME: MNIST
+  BATCH_SIZE: 32
+  NUM_WORKERS: 16
+  VAL_RATE: 0.2
+# train config
+TRAIN:
+  NUM_WORKERS: 16 # Number of workers
+  BATCH_SIZE: 64 # Size of batches
+  START_EPOCH: 1 # Start epoch
+  END_EPOCH: 3001 # End epoch
+  RESUME: '' # Experiment path to be resumed training
+  # PRETRAINED_VAE: ''
+  PRETRAINED: '' # Pretrained model path
+
+
+EVAL:
+
+TEST:
+
+# model config
+MODEL:
+  MODEL_TYPE: AlexNet
+  NUM_CLASSES:
+  ARCH_CONFIG:
+    DROPOUT: 0.2
+  LOSS:
+    TYPE: CrossEntropyLoss
+  OPTIM:
+    TYPE: Adan # Optimizer type
+    ARGS:
+      LR: 4e-4 # Learning rate
+  METRIC:
+    TYPE: Accuracy
+    ARGS:
+      TASK: multiclass
+      TOP_K: 1
+
+# logger config
+LOGGER:
+  ROOT_FOLDER: ./logger
+
+  SAVE_CHECKPOINT_EPOCH: 1      # 保存间隔
+  CHECK_VAL_EPOCH: 1
+  LOG_EVERY_STEPS: 1000
+  TENSORBOARD: true
+  WANDB:
+    OFFLINE: false
+    PROJECT: null
+    RESUME_ID: null

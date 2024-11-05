@@ -1,1 +1,2 @@
 from .torchtext_datamodule import TorchTextDataModule
+from .torchvision_datamodule import TorchVisionDataModule

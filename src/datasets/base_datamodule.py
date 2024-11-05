@@ -13,8 +13,6 @@ class BaseDataModule(LightningDataModule):
         self.test_set = None
         self.predict_set = None
 
-        self.tokenizer_name = config.DATASET.TOKENIZER_NAME
-
         self.batch_size = config.DATASET.BATCH_SIZE
         self.num_workers = config.DATASET.NUM_WORKERS
 
@@ -31,6 +29,7 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
+            collate_fn=self.collate_fn
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -41,6 +40,7 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
+            collate_fn=self.collate_fn
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -51,8 +51,5 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers,
             drop_last=self.drop_last,
+            collate_fn=self.collate_fn
         )
-
-    def tokenizer(self, line):
-        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name, cache_dir="cache")
-        return tokenizer(line)

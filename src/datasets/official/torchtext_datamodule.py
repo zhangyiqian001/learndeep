@@ -22,11 +22,11 @@ class TextClassificationDataset(Dataset):
             self.data[index][1],
             padding="max_length",
             max_length=self.max_length
-        )['input_ids']
+        )
         targets = (torch.nn.functional.one_hot(torch.tensor(self.data[index][0]-1), num_classes=self.num_classes))
-        inputs = torch.tensor(inputs, dtype=torch.int64)
+        inputs = {key: torch.tensor(value, dtype=torch.int64).to(self.device) for key, value in inputs.items()}
         targets = torch.tensor(targets, dtype=torch.float32)
-        return inputs.to(self.device), targets.to(self.device)
+        return inputs, targets.to(self.device)
 
     def __len__(self):
         return len(self.data)
@@ -53,8 +53,7 @@ class TorchTextDataModule(BaseDataModule):
         self.train_iter, self.test_iter = DATASETS[self.name](self.data_dir)
         if "classification" in self.config.TASK:
             self.num_classes = len(set([label for label, _ in self.train_iter]))
-            self.config.MODEL.ARCH_CONFIG.NUM_CLASSES = self.num_classes
-            self.config.MODEL.METRIC.ARGS.NUM_CLASSES = self.num_classes
+            self.config.MODEL.NUM_CLASSES = self.num_classes
 
     def setup(self, stage: str) -> None:
         train_dataset = TextClassificationDataset(self.train_iter, self.tokenizer, self.max_length, self.num_classes,
@@ -62,7 +61,8 @@ class TorchTextDataModule(BaseDataModule):
         test_dataset = TextClassificationDataset(self.test_iter, self.tokenizer, self.max_length, self.num_classes,
                                                  self.device)
         num_train = int(len(train_dataset) * (1 - self.val_rate))
-        split_train_, split_valid_ = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
+        num_val = int(len(train_dataset) * self.val_rate)
+        split_train_, split_valid_ = random_split(train_dataset, [num_train, num_val])
         self.train_set = split_train_
         self.val_set = split_valid_
         self.test_set = test_dataset

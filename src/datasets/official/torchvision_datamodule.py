@@ -4,7 +4,7 @@ import torch
 from torch.utils.data.dataset import random_split
 from torchvision.datasets import *
 from torchvision.datasets import MovingMNIST
-from transformers import AutoTokenizer
+from torchvision.transforms import transforms
 
 from datasets.base_datamodule import BaseDataModule
 
@@ -104,26 +104,32 @@ class TorchVisionDataModule(BaseDataModule):
         self.device = config.DEVICE[0]
         self.name = config.DATASET.NAME
         self.data_dir = Path(config.ROOT) / "data" / config.TASK
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            config.DATASET.TOKENIZER_NAME,
-            cache_dir=Path(config.ROOT) / "cache"
-        )
-        self.config.MODEL.ARCH_CONFIG.INPUT_VOCAB_SIZE = self.tokenizer.vocab_size
         self.val_rate = config.DATASET.VAL_RATE
 
+    def _collate_fn(self, batch):
+        # try:
+        # inputs, targets = batch
+        inputs = batch[0]
+        targets = batch[1]
+        targets = torch.nn.functional.one_hot(torch.tensor(targets), num_classes=self.num_classes)
+        targets = torch.tensor(targets, dtype=torch.float32)
+        return inputs, targets
+        # except Exception as e:
+        #     print(e)
+        #     return batch
+
     def prepare_data(self) -> None:
-        train_iter, test_iter = DATASETS[self.name](self.data_dir)
-        if "classification" in self.config.TASK:
-            num_classes = len(set([label for label, _ in train_iter]))
-            self.config.MODEL.ARCH_CONFIG.NUM_CLASSES = num_classes
-
-
-        num_train = int(len(list(train_dataset)) * (1 - self.val_rate))
-        split_train_, split_valid_ = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
-        self.train_set = train_dataset
-        self.val_set = split_valid_
-        self.test_set = test_dataset
-        self.collate_fn = _collate_fn
+        self.train_iter = DATASETS[self.name](self.data_dir, train=True, download=True, transform = transforms.ToTensor(),)
+        self.test_iter = DATASETS[self.name](self.data_dir, train=False, download=True, transform = transforms.ToTensor(),)
+        self.num_classes = len(self.train_iter.classes)
+        self.config.MODEL.NUM_CLASSES = self.num_classes
+        self.collate_fn = self._collate_fn
 
     def setup(self, stage: str) -> None:
-        pass
+        num_train = int(len(self.train_iter) * (1 - self.val_rate))
+        num_val = int(len(self.train_iter) * self.val_rate)
+        split_train_, split_valid_ = random_split(self.train_iter, [num_train, num_val])
+        self.train_set = split_train_
+        self.val_set = split_valid_
+        self.test_set = self.test_iter
+

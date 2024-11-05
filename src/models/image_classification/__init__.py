@@ -1,5 +1,5 @@
-from .transformer_module import TransformerModule
+from .alexnet_module import AlexNetModule
 
 __all__ = [
-    "TransformerModule",
+    "AlexNetModule",
 ]

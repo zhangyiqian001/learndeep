@@ -16,9 +16,9 @@ def a(f):
 #     a, b = batch[0]
 #     return a, b
 if __name__ == '__main__':
-    v = {"F": 1}
-    lowercase_students = {key.lower(): value for key, value in v.items()}
-    a(**lowercase_students)
+    # v = {"F": 1}
+    # lowercase_students = {key.lower(): value for key, value in v.items()}
+    # a(**lowercase_students)
     # train_set, test_set = AG_NEWS()
     # print(train_set)
     # # train_set = to_map_style_dataset(train_set)
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased",)
     # print(torch.tensor(tokenizer([i[1] for i in train_set[:10]], padding=True)['input_ids']).shape)
     # a = tokenizer(train_set[0][1])
-    # print(torch.nn.functional.one_hot(torch.tensor(train_set[0][0]), num_classes=4))
+    print(torch.nn.functional.one_hot(torch.tensor([[1], [2]],), num_classes=4))
     # print(a)
     # a = torch.rand(10, 1024)
     # linear = nn.Linear(1024, 4)

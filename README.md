@@ -8,7 +8,7 @@
 
 #### 训练脚本
 ```sh
-python .\train.py  .\config\text_classification\transformer.yaml
+python .\train.py  .\configs\text_classification\transformer.yaml
 ```
 
 #### 可视化脚本

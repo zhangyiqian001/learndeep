@@ -1,3 +1,4 @@
+from .base_datamodule import BaseDataModule
 from .official import *
 import sys
 
