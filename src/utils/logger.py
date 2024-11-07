@@ -7,25 +7,25 @@ from pytorch_lightning.utilities.rank_zero import rank_zero_only
 import lightning
 
 
-def create_logger(cfg, phase='train'):
-    # root dir set by cfg
-    root_output_dir = Path(cfg.LOGGER.ROOT_FOLDER)
+def create_logger(config, phase='train'):
+    # root dir set by config
+    root_output_dir = Path(config.LOGGER.ROOT_FOLDER)
     # set up logger
     if not root_output_dir.exists():
         print('=> creating {}'.format(root_output_dir))
         root_output_dir.mkdir()
 
-    cfg_name = cfg.NAME
-    model = cfg.MODEL.MODEL_TYPE
-    cfg_name = os.path.basename(cfg_name).split('.')[0]
+    config_name = config.BASE.NAME
+    model = config.MODEL.MODEL_TYPE
+    config_name = os.path.basename(config_name).split('.')[0]
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-    cfg.TIME = time_str
-    cfg_name = cfg_name  # + "__" + time_str
-    final_output_dir = root_output_dir / model / cfg_name
-    cfg.FOLDER_EXP = str(final_output_dir)
+    config.TIME = time_str
+    config_name = config_name  # + "__" + time_str
+    final_output_dir = root_output_dir / model / config_name
+    config.FOLDER_EXP = str(final_output_dir)
 
-    new_dir(cfg, phase, time_str, final_output_dir)
+    new_dir(config, phase, time_str, final_output_dir)
 
     head = '%(asctime)-15s %(message)s'
     logger = config_logger(final_output_dir, time_str, phase, head)
@@ -55,19 +55,19 @@ def config_logger(final_output_dir, time_str, phase, head):
 
 
 @rank_zero_only
-def new_dir(cfg, phase, time_str, final_output_dir):
+def new_dir(config, phase, time_str, final_output_dir):
     # new experiment folder
-    cfg.TIME = str(time_str)
+    config.TIME = str(time_str)
     if os.path.exists(
-            final_output_dir) and cfg.TRAIN.RESUME is None and not cfg.DEBUG:
+            final_output_dir) and config.TRAIN.RESUME is None and not config.DEBUG:
         file_list = sorted(os.listdir(final_output_dir), reverse=True)
         for item in file_list:
             if item.endswith('.log'):
                 os.rename(str(final_output_dir),
-                          str(final_output_dir) + '_' + cfg.TIME)
+                          str(final_output_dir) + '_' + config.TIME)
                 break
     final_output_dir.mkdir(parents=True, exist_ok=True)
     # write config yaml
     config_file = '{}_{}_{}.yaml'.format('config', time_str, phase)
     final_config_file = final_output_dir / config_file
-    OmegaConf.save(config=cfg, f=final_config_file)
+    OmegaConf.save(config=config, f=final_config_file)

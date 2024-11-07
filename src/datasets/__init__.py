@@ -1,5 +1,5 @@
 from .base_datamodule import BaseDataModule
-from .official import *
+from .datamodule import *
 import sys
 
 

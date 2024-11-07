@@ -149,7 +149,7 @@ class BaseModelModule(LightningModule):
     def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
         inputs, target = batch
         output = self(inputs)
-        if "classification" in self.config.TASK:
+        if "classification" in self.config.BASE.TASK:
             output = torch.nn.functional.softmax(output, dim=1)
         loss = define_loss(self.config.MODEL)(output, target)
         metric = define_metric(self.config.MODEL).to(self.device)
@@ -161,7 +161,7 @@ class BaseModelModule(LightningModule):
     def validation_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
         inputs, target = batch
         output = self(inputs)
-        if "classification" in self.config.TASK:
+        if "classification" in self.config.BASE.TASK:
             output = torch.nn.functional.softmax(output, dim=1)
         loss = define_loss(self.config.MODEL)(output, target)
         metric = define_metric(self.config.MODEL).to(self.device)
@@ -173,7 +173,7 @@ class BaseModelModule(LightningModule):
     def test_step(self, batch, batch_idx):
         inputs = batch
         output = self(inputs)
-        if "classification" in self.config.TASK:
+        if "classification" in self.config.BASE.TASK:
             output = torch.nn.functional.softmax(output, dim=1)
         return output
 
@@ -182,3 +182,7 @@ class BaseModelModule(LightningModule):
         args = {key.lower(): value for key, value in args.items()}
         args['params'] = self.model.parameters()
         return OPTIM[self.config.MODEL.OPTIM.TYPE](**args)
+
+    @classmethod
+    def from_config(cls, config):
+        pass

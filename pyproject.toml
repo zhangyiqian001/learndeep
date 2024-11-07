@@ -15,6 +15,7 @@ torchvision = { version = "0.15.2", source="torch" }
 charset-normalizer = "3.1.0"
 numpy = "1.26.4"
 protobuf = "3.20.1"
+litdata = "^0.2.30"
 
 [[tool.poetry.source]]
 name = "orgin"

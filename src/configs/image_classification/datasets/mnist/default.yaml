@@ -1,0 +1,7 @@
+DATASET:
+  ORIGIN: TorchVisionDataModule
+  NAME: MNIST
+  BATCH_SIZE: 32
+  NUM_WORKERS: 16
+  VAL_RATE: 0.2
+  CACHE_DIR:

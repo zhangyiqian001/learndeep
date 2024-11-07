@@ -1,13 +1,14 @@
 # base config
-NAME: Transformer
-ACCELERATOR: gpu
-DEVICE:
-  - 0
+BASE:
+  NAME: Transformer
+  ACCELERATOR: gpu
+  DEVICE:
+    - 0
 
-DEBUG: False
-SEED_VALUE: 1234
-TASK: text_classification
-ROOT: D:\\learndeep\\src
+  DEBUG: False
+  SEED_VALUE: 1234
+  TASK: text_classification
+  ROOT: D:\\learndeep\\src
 # dataset config
 DATASET:
   ORIGIN: TorchTextDataModule

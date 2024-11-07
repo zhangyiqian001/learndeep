@@ -8,6 +8,12 @@ from torchmetrics import Accuracy
 from torchtext.data import to_map_style_dataset
 from torchtext.datasets import AG_NEWS
 from transformers import BertTokenizer
+from omegaconf import OmegaConf
+
+from models import BaseModelModule
+from tasks import create_task
+from utils.registry import registry
+
 
 def a(f):
     print(f)
@@ -16,6 +22,9 @@ def a(f):
 #     a, b = batch[0]
 #     return a, b
 if __name__ == '__main__':
+    pass
+    # config = OmegaConf.load("configs/text_classification/transformer.yaml")
+    # print(config.get("BASE", 116))
     # v = {"F": 1}
     # lowercase_students = {key.lower(): value for key, value in v.items()}
     # a(**lowercase_students)
@@ -30,7 +39,7 @@ if __name__ == '__main__':
     # tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased",)
     # print(torch.tensor(tokenizer([i[1] for i in train_set[:10]], padding=True)['input_ids']).shape)
     # a = tokenizer(train_set[0][1])
-    print(torch.nn.functional.one_hot(torch.tensor([[1], [2]],), num_classes=4))
+    # print(torch.nn.functional.one_hot(torch.tensor([[1], [2]],), num_classes=4))
     # print(a)
     # a = torch.rand(10, 1024)
     # linear = nn.Linear(1024, 4)

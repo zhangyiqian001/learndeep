@@ -1,0 +1,56 @@
+# base config
+BASE:
+  NAME: AlexNet
+  ACCELERATOR: gpu
+  DEVICE:
+    - 0
+
+  DEBUG: False
+  SEED_VALUE: 1234
+  TASK: image_classification
+# processor config
+PROCESSOR:
+  NAME:
+  CONFIG:
+# dataset config
+DATAMODULE:
+  NAME: mnist
+  CONFIG: default.yaml
+# model config
+MODEL:
+  NAME: alexnet
+  CONFIG: default.yaml
+
+# train config
+TRAIN:
+  BATCH_SIZE: 64
+  START_EPOCH: 1
+  END_EPOCH: 3001
+  RESUME:
+  PRETRAINED:
+  LOSS:
+    TYPE: CrossEntropyLoss
+  OPTIM:
+    TYPE: Adan
+    ARGS:
+      LR: 4e-4
+  METRICS:
+    TYPE: Accuracy
+    ARGS:
+      TASK: multiclass
+      TOP_K: 1
+      NUM_CLASSES:
+EVAL:
+TEST:
+# logger config
+LOGGER:
+  ROOT_FOLDER: ./logger
+
+  SAVE_CHECKPOINT_EPOCH: 1      # 保存间隔
+  CHECK_VAL_EPOCH: 1
+  LOG_EVERY_STEPS: 1000
+  TENSORBOARD: true
+  WANDB:
+    OFFLINE: false
+    PROJECT: null
+    RESUME_ID: null

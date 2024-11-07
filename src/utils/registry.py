@@ -8,37 +8,37 @@
 
 class Registry:
     mapping = {
-        "builder_name_mapping": {},
+        "datamodule_name_mapping": {},
         "task_name_mapping": {},
         "processor_name_mapping": {},
         "model_name_mapping": {},
     }
 
     @classmethod
-    def register_builder(cls, name):
-        r"""Register a dataset builder to registry with key 'name'
+    def register_datamodule(cls, name):
+        r"""Register a datamodule to registry with key 'name'
 
         Args:
-            name: Key with which the builder will be registered.
+            name: Key with which the datamodule will be registered.
 
         Usage:
 
             from lavis.common.registry import registry
-            from lavis.datasets.base_dataset_builder import BaseDatasetBuilder
+            from lavis.datamodules.base_datamodule_datamodule import BaseDatamodule
         """
 
-        def wrap(builder_cls):
+        def wrap(datamodule_cls):
             from datasets import BaseDataModule
 
-            assert issubclass(builder_cls, BaseDataModule), "All builders must inherit BaseDataModule class, found {}".format(builder_cls)
-            if name in cls.mapping["builder_name_mapping"]:
+            assert issubclass(datamodule_cls, BaseDataModule), "All datamodules must inherit BaseDataModule class, found {}".format(datamodule_cls)
+            if name in cls.mapping["datamodule_name_mapping"]:
                 raise KeyError(
                     "Name '{}' already registered for {}.".format(
-                        name, cls.mapping["builder_name_mapping"][name]
+                        name, cls.mapping["datamodule_name_mapping"][name]
                     )
                 )
-            cls.mapping["builder_name_mapping"][name] = builder_cls
-            return builder_cls
+            cls.mapping["datamodule_name_mapping"][name] = datamodule_cls
+            return datamodule_cls
 
         return wrap
 
@@ -124,8 +124,8 @@ class Registry:
         return wrap
 
     @classmethod
-    def get_builder_class(cls, name):
-        return cls.mapping["builder_name_mapping"].get(name, None)
+    def get_datamodule_class(cls, name):
+        return cls.mapping["datamodule_name_mapping"].get(name, None)
 
     @classmethod
     def get_model_class(cls, name):
@@ -152,8 +152,8 @@ class Registry:
         return sorted(cls.mapping["processor_name_mapping"].keys())
 
     @classmethod
-    def list_datasets(cls):
-        return sorted(cls.mapping["builder_name_mapping"].keys())
+    def list_datamodules(cls):
+        return sorted(cls.mapping["datamodule_name_mapping"].keys())
 
 
 

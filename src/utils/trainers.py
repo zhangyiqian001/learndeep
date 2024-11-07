@@ -10,16 +10,16 @@ from lightning.pytorch.strategies import DDPStrategy
 def create_trainer(config):
     vis_loggers = create_logger(config)
     callbacks = create_callback(config)
-    if len(config.DEVICE) > 1:
+    if len(config.BASE.DEVICE) > 1:
         ddp_strategy = "ddp"
     else:
         ddp_strategy = 'auto'
     trainer = L.Trainer(
-        fast_dev_run=config.DEBUG,
+        fast_dev_run=config.BASE.DEBUG,
         benchmark=True,
         max_epochs=config.TRAIN.END_EPOCH,
-        accelerator=config.ACCELERATOR,
-        devices=config.DEVICE,
+        accelerator=config.BASE.ACCELERATOR,
+        devices=config.BASE.DEVICE,
         strategy=ddp_strategy,
         default_root_dir=config.FOLDER_EXP,
         # 在步骤内多久记录一次, default: 50
@@ -45,7 +45,7 @@ def create_logger(config):
             id=config.LOGGER.WANDB.RESUME_ID,
             save_dir=config.FOLDER_EXP,
             version="",
-            name=config.NAME,
+            name=config.BASE.NAME,
             anonymous=False,
             log_model=False,
         )

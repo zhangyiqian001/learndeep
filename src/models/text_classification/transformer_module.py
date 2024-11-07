@@ -35,7 +35,7 @@ class TransformerModel(nn.Module):
     def __init__(self, config):
         super(TransformerModel, self).__init__()
         # Output of embedding must be equal (embed_size)
-        self.src_embedding = nn.Embedding(config.INPUT_VOCAB_SIZE, config.EMBED_SIZE)
+        self.src_embedding = nn.Embedding(config.ARCH_CONFIG.INPUT_VOCAB_SIZE, config.EMBED_SIZE)
         # self.tgt_embedding = nn.Embedding(config.INPUT_VOCAB_SIZE, config.EMBED_SIZE)
 
         self.pos_enc = PositionalEncoding(config.EMBED_SIZE, config.DROPOUT)
@@ -73,3 +73,10 @@ class TransformerModule(BaseModelModule):
         super().__init__()
         self.config = config
         self.model = TransformerModel(config.MODEL)
+
+    @classmethod
+    def from_config(cls, config="default"):
+        return cls(
+
+        )
+
