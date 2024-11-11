@@ -1,16 +1,4 @@
-MODEL:
-  MODEL_TYPE: AlexNet
-  NUM_CLASSES:
-  ARCH_CONFIG:
-    DROPOUT: 0.2
-  LOSS:
-    TYPE: CrossEntropyLoss
-  OPTIM:
-    TYPE: Adan # Optimizer type
-    ARGS:
-      LR: 4e-4 # Learning rate
-  METRIC:
-    TYPE: Accuracy
-    ARGS:
-      TASK: multiclass
-      TOP_K: 1
+MODEL_NAME: AlexNet
+PRETRAINED:
+ARCH_CONFIG:
+  dropout: 0.2

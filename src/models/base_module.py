@@ -1,13 +1,29 @@
-from typing import Tuple
+from typing import Any
 
 import torch
 from lightning.pytorch import LightningModule
-from omegaconf import OmegaConf
+from timm.optim import Adan
 from torch import Tensor
 from torch.nn.modules.loss import *
 from torch.optim import *
-from timm.optim import Adan
 from torchmetrics import *
+
+OPTIM = {
+    "Adadelta": Adadelta,
+    "Adagrad": Adagrad,
+    "Adam": Adam,
+    "Adan": Adan,
+    "AdamW": AdamW,
+    "SparseAdam": SparseAdam,
+    "Adamax": Adamax,
+    "ASGD": ASGD,
+    "SGD": SGD,
+    "RAdam": RAdam,
+    "Rprop": Rprop,
+    "RMSprop": RMSprop,
+    "NAdam": NAdam,
+    "LBFGS": LBFGS,
+}
 
 LOSS = {
     'L1Loss': L1Loss,
@@ -34,24 +50,7 @@ LOSS = {
     'CTCLoss': CTCLoss
 }
 
-OPTIM = {
-    "Adadelta": Adadelta,
-    "Adagrad": Adagrad,
-    "Adam": Adam,
-    "Adan": Adan,
-    "AdamW": AdamW,
-    "SparseAdam": SparseAdam,
-    "Adamax": Adamax,
-    "ASGD": ASGD,
-    "SGD": SGD,
-    "RAdam": RAdam,
-    "Rprop": Rprop,
-    "RMSprop": RMSprop,
-    "NAdam": NAdam,
-    "LBFGS": LBFGS,
-}
-
-METRIC = {
+METRICS = {
     "Accuracy": Accuracy,
     "AUROC": AUROC,
     "AveragePrecision": AveragePrecision,
@@ -124,65 +123,53 @@ METRIC = {
     "WordInfoPreserved": WordInfoPreserved,
 }
 
-
-def define_loss(config):
-    return LOSS[config.LOSS.TYPE]()
-
-
-def define_metric(config):
-    args = OmegaConf.to_container(config.METRIC.ARGS)
-    args = {key.lower(): value for key, value in args.items()}
-    args['num_classes'] = config.NUM_CLASSES
-    return METRIC[config.METRIC.TYPE](**args)
-
-
 class BaseModelModule(LightningModule):
 
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
+        self.config = config
         self.model = None
-        self.config = None
+        self.loss = LOSS[self.config['loss']](**self.config['loss_args'])
+        self.metrics = METRICS[self.config['metrics']](**self.config['metrics_args']).to(self.device)
 
     def forward(self, *args, **kwargs) -> Tensor:
         return self.model(args[0])
 
-    def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
-        inputs, target = batch
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
         output = self(inputs)
-        if "classification" in self.config.BASE.TASK:
-            output = torch.nn.functional.softmax(output, dim=1)
-        loss = define_loss(self.config.MODEL)(output, target)
-        metric = define_metric(self.config.MODEL).to(self.device)
-        acc = metric(output.argmax(1), target.argmax(1))
-        values = {"loss": loss, "acc": acc}
+        loss = self.loss(output, target)
+        acc = self.metrics(output.argmax(1), target)
+        values = {"train_loss": loss, "train_acc": acc}
         self.log_dict(values, prog_bar=True)
         return loss
 
-    def validation_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
-        inputs, target = batch
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
         output = self(inputs)
-        if "classification" in self.config.BASE.TASK:
-            output = torch.nn.functional.softmax(output, dim=1)
-        loss = define_loss(self.config.MODEL)(output, target)
-        metric = define_metric(self.config.MODEL).to(self.device)
-        acc = metric(output.argmax(1), target.argmax(1))
-        values = {"loss": loss, "acc": acc}
+        loss = self.loss(output, target)
+        acc = self.metrics(output.argmax(1), target)
+        values = {"val_loss": loss, "val_acc": acc}
         self.log_dict(values, prog_bar=True)
         return loss
 
-    def test_step(self, batch, batch_idx):
-        inputs = batch
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
         output = self(inputs)
-        if "classification" in self.config.BASE.TASK:
-            output = torch.nn.functional.softmax(output, dim=1)
         return output
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        args = OmegaConf.to_container(self.config.MODEL.OPTIM.ARGS)
-        args = {key.lower(): value for key, value in args.items()}
-        args['params'] = self.model.parameters()
-        return OPTIM[self.config.MODEL.OPTIM.TYPE](**args)
+        return OPTIM[self.config['optim']](params=self.model.parameters(), **self.config['optim_args'])
+
+    def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
+        result = {}
+        for key,value in batch.items():
+            if isinstance(value, dict):
+                result[key] = {k: v.to(device) for k,v in value}
+            else:
+                result[key] = value.to(device)
+        return result
 
     @classmethod
     def from_config(cls, config):
-        pass
+        return cls(config)

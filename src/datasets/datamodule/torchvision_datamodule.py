@@ -8,7 +8,7 @@ from torchvision.datasets import MovingMNIST
 from torchvision.transforms import transforms
 
 from datasets.base_datamodule import BaseDataModule
-
+from utils.registry import registry
 
 DATASETS = {
     # Image classification
@@ -98,37 +98,22 @@ DATASETS = {
     "ImageFolder": ImageFolder,
     "VisionDataset": VisionDataset,
 }
-class TorchVisionDataModule(BaseDataModule):
-    def __init__(self, config):
-        super().__init__(config)
-        self.config = config
-        self.device = config.BASE.DEVICE[0]
-        self.name = config.DATASET.NAME
-        self.data_dir = Path(config.BASE.ROOT) / "data" / config.BASE.TASK
-        self.val_rate = config.DATASET.VAL_RATE
 
-    def _collate_fn(self, batch):
-        # try:
-        # inputs, targets = batch
-        inputs = batch[0]
-        targets = batch[1]
-        targets = torch.nn.functional.one_hot(torch.tensor(targets), num_classes=self.num_classes)
-        targets = torch.tensor(targets, dtype=torch.float32)
-        return inputs, targets
-        # except Exception as e:
-        #     print(e)
-        #     return batch
-    def transfer_batch_to_device(self, batch: Any, device: torch.device, dataloader_idx: int) -> Any:
-        inputs = batch[0]
-        targets = batch[1]
-        targets = torch.nn.functional.one_hot(torch.tensor(targets), num_classes=self.num_classes)
-        targets = torch.tensor(targets, dtype=torch.float32)
-        return inputs, targets
+class TorchVisionDataModule(BaseDataModule):
+    def __init__(self, config, transfer):
+        super().__init__(config, transfer)
+        self.num_classes = None
+        self.config = config
+        self.name = config.DATA_NAME
+        self.data_dir = Path(registry.get_path("root")) / "data"
+        self.val_rate = config.VAL_RATE
+
     def prepare_data(self) -> None:
-        self.train_iter = DATASETS[self.name](self.data_dir, train=True, download=True, transform = transforms.ToTensor(),)
-        self.test_iter = DATASETS[self.name](self.data_dir, train=False, download=True, transform = transforms.ToTensor(),)
+        self.train_iter = DATASETS[self.name](
+            self.data_dir, train=True, download=True, transform = transforms.ToTensor(),)
+        self.test_iter = DATASETS[self.name](
+            self.data_dir, train=False, download=True, transform = transforms.ToTensor(),)
         self.num_classes = len(self.train_iter.classes)
-        self.config.MODEL.NUM_CLASSES = self.num_classes
 
     def setup(self, stage: str) -> None:
         num_train = int(len(self.train_iter) * (1 - self.val_rate))
@@ -138,4 +123,15 @@ class TorchVisionDataModule(BaseDataModule):
         self.val_set = split_valid_
         self.test_set = self.test_iter
 
+    @classmethod
+    def from_config(cls, config, transfer=None):
+        return cls(config, transfer)
 
+
+@registry.register_datamodule("mnist")
+class MnistDataModule(TorchVisionDataModule):
+    def __init__(self, config, transfer):
+        super().__init__(config, transfer)
+    @classmethod
+    def from_config(cls, config, transfer=None):
+        return cls(config, transfer)

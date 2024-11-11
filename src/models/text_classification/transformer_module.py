@@ -67,7 +67,6 @@ class TransformerModel(nn.Module):
         )
         return self.ff(outs.reshape(input_ids.shape[0], -1))
 
-
 class TransformerModule(BaseModelModule):
     def __init__(self, config):
         super().__init__()
@@ -75,7 +74,7 @@ class TransformerModule(BaseModelModule):
         self.model = TransformerModel(config.MODEL)
 
     @classmethod
-    def from_config(cls, config="default"):
+    def from_config(cls, config):
         return cls(
 
         )

@@ -12,7 +12,24 @@ class Registry:
         "task_name_mapping": {},
         "processor_name_mapping": {},
         "model_name_mapping": {},
+        "paths": {}
     }
+
+    @classmethod
+    def register_path(cls, name, path):
+        r"""Register a path to registry with key 'name'
+
+        Args:
+            name: Key with which the path will be registered.
+
+        Usage:
+
+            from lavis.common.registry import registry
+        """
+        assert isinstance(path, str), "All path must be str."
+        if name in cls.mapping["paths"]:
+            raise KeyError("Name '{}' already registered.".format(name))
+        cls.mapping["paths"][name] = path
 
     @classmethod
     def register_datamodule(cls, name):
@@ -138,6 +155,10 @@ class Registry:
     @classmethod
     def get_processor_class(cls, name):
         return cls.mapping["processor_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_path(cls, name):
+        return cls.mapping["paths"].get(name, None)
 
     @classmethod
     def list_models(cls):

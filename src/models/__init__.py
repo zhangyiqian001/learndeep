@@ -4,6 +4,9 @@ from .image_classification import *
 
 import sys
 
+__all__ = [
+
+]
 
 def create_model(config):
     task = config.BASE.TASK

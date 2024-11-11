@@ -1,2 +1,3 @@
 from .torchtext_datamodule import TorchTextDataModule
 from .torchvision_datamodule import TorchVisionDataModule
+from .torchvision_datamodule import MnistDataModule

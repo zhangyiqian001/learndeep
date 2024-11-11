@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from torch.utils.data import IterDataPipe
 from torch.utils.data.datapipes.iter.callable import MapperIterDataPipe
@@ -22,7 +23,15 @@ def a(f):
 #     a, b = batch[0]
 #     return a, b
 if __name__ == '__main__':
-    pass
+    a = torch.tensor(
+        [
+            [2.0, 0.5],
+            [0.5, 2.0]
+        ]
+    )
+    b = torch.tensor([1, 2])
+    loss = CrossEntropyLoss()
+    print(loss(a, b))
     # config = OmegaConf.load("configs/text_classification/transformer.yaml")
     # print(config.get("BASE", 116))
     # v = {"F": 1}

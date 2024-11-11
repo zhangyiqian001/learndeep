@@ -16,13 +16,12 @@ def create_logger(config, phase='train'):
         root_output_dir.mkdir()
 
     config_name = config.BASE.NAME
-    model = config.MODEL.MODEL_TYPE
     config_name = os.path.basename(config_name).split('.')[0]
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     config.TIME = time_str
     config_name = config_name  # + "__" + time_str
-    final_output_dir = root_output_dir / model / config_name
+    final_output_dir = root_output_dir / config_name
     config.FOLDER_EXP = str(final_output_dir)
 
     new_dir(config, phase, time_str, final_output_dir)
@@ -59,7 +58,7 @@ def new_dir(config, phase, time_str, final_output_dir):
     # new experiment folder
     config.TIME = str(time_str)
     if os.path.exists(
-            final_output_dir) and config.TRAIN.RESUME is None and not config.DEBUG:
+            final_output_dir) and config.TRAIN.RESUME is None and not config.BASE.DEBUG:
         file_list = sorted(os.listdir(final_output_dir), reverse=True)
         for item in file_list:
             if item.endswith('.log'):
