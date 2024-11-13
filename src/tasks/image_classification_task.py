@@ -1,3 +1,5 @@
+from torch import nn
+
 from tasks import BaseTask
 from utils.registry import registry
 
@@ -13,20 +15,24 @@ class ImageClassificationTask(BaseTask):
         self.dynamic_config = dynamic_config
 
         self.processor = None
-        self.model = None
+        self.module = None
         self.datamodule = None
         self.trainer = None
 
 
-    def run(self):
+    def run(self, stage="train"):
         config = self.build_config()
         config = config | self.dynamic_config
         self.datamodule = self.build_datamodule(config)
         config['ARCH_CONFIG']['num_classes'] = self.datamodule.num_classes
         config['metrics_args']['num_classes'] = self.datamodule.num_classes
-        self.model = self.build_model(config)
+        self.module = self.build_module(config)
+        self.module.model.classifier.append(nn.Softmax(dim=1))
         self.trainer = self.build_trainer()
-        self.trainer.fit(self.model, self.datamodule)
+        if stage == "train":
+            self.trainer.fit(self.module, self.datamodule, ckpt_path=self.pretrained)
+        elif stage == "test":
+            self.trainer.test(self.module, self.datamodule, ckpt_path=self.pretrained)
 
     @classmethod
     def setup_task(cls, config):
@@ -37,8 +43,6 @@ class ImageClassificationTask(BaseTask):
         optim_args = train_config.OPTIM.get('ARGS', {})
         metrics = train_config.METRICS.TYPE
         metrics_args = train_config.METRICS.get('ARGS', {})
-        resume = train_config.get('RESUME', None)
-        pretrained = train_config.get('PRETRAINED', None)
         dynamic = {
             "loss": loss,
             "optim": optim,
@@ -46,7 +50,5 @@ class ImageClassificationTask(BaseTask):
             "loss_args": loss_args,
             "optim_args": optim_args,
             "metrics_args": metrics_args,
-            "pretrained": pretrained,
-            "resume": resume,
         }
         return cls(config, dynamic)

@@ -135,3 +135,11 @@ class MnistDataModule(TorchVisionDataModule):
     @classmethod
     def from_config(cls, config, transfer=None):
         return cls(config, transfer)
+
+@registry.register_datamodule("cifar10")
+class CIFAR10DataModule(TorchVisionDataModule):
+    def __init__(self, config, transfer):
+        super().__init__(config, transfer)
+    @classmethod
+    def from_config(cls, config, transfer=None):
+        return cls(config, transfer)

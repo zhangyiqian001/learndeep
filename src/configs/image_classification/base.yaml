@@ -1,6 +1,5 @@
 # base config
 BASE:
-  NAME: AlexNet
   ACCELERATOR: gpu
   DEVICE:
     - 0
@@ -14,7 +13,7 @@ PROCESSOR:
   CONFIG:
 # dataset config
 DATAMODULE:
-  NAME: mnist
+  NAME: cifar10
   CONFIG: default.yaml
 # model config
 MODEL:
@@ -24,8 +23,7 @@ MODEL:
 # train config
 TRAIN:
   EPOCH: 3001
-  RESUME:
-  PRETRAINED:
+  PRETRAINED: ./logger/checkpoints/epoch=41.ckpt
   LOSS:
     TYPE: CrossEntropyLoss
   OPTIM:

@@ -7,7 +7,7 @@
 import os
 from pathlib import Path
 
-from lightning.pytorch.callbacks import RichProgressBar, ModelCheckpoint
+from lightning.pytorch.callbacks import RichProgressBar, ModelCheckpoint, EarlyStopping
 from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBarTheme
 from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
 from omegaconf import OmegaConf
@@ -21,7 +21,6 @@ import lightning as L
 
 class BaseTask:
     def __init__(self, config):
-        self.name = config.BASE.NAME
         self.task = config.BASE.TASK
         self.accelerator = config.BASE.ACCELERATOR
         self.device = config.BASE.DEVICE
@@ -31,9 +30,10 @@ class BaseTask:
         self.processor_config = config.PROCESSOR.CONFIG
         self.datamodule_name = config.DATAMODULE.NAME
         self.datamodule_config = config.DATAMODULE.CONFIG
-        self.model_name = config.MODEL.NAME
-        self.model_config = config.MODEL.CONFIG
+        self.module_name = config.MODEL.NAME
+        self.module_config = config.MODEL.CONFIG
         self.epoch = config.TRAIN.EPOCH
+        self.pretrained = config.TRAIN.PRETRAINED
 
     def build_config(self):
         processor_config = {}
@@ -42,7 +42,7 @@ class BaseTask:
             processor_config = OmegaConf.to_container(OmegaConf.load(config_file))
         config_file = Path(self.config_root) / self.task / "datasets" / self.datamodule_name / self.datamodule_config
         datasets_config = OmegaConf.to_container(OmegaConf.load(config_file))
-        config_file = Path(self.config_root) / self.task / "models" / self.model_name / self.model_config
+        config_file = Path(self.config_root) / self.task / "models" / self.module_name / self.module_config
         model_config = OmegaConf.to_container(OmegaConf.load(config_file))
         return processor_config | datasets_config | model_config
 
@@ -55,20 +55,20 @@ class BaseTask:
         datamodule.prepare_data()
         return datamodule
 
-    def build_model(self, config):
+    def build_module(self, config):
         config = OmegaConf.create(config)
-        return registry.get_model_class(self.model_name).from_config(config)
+        return registry.get_model_class(self.module_name).from_config(config)
 
     def build_trainer(self):
         vis_loggers = []
         log_config = OmegaConf.load(os.path.join(self.config_root, "assets.yaml"))
-
+        save_dir = Path(log_config.FOLDER_EXP) / self.task / (self.datamodule_name + '_' + self.module_name)
         if log_config.WANDB.PROJECT:
             wandb_logger = WandbLogger(
                 project=log_config.WANDB.PROJECT,
                 offline=log_config.WANDB.OFFLINE,
                 id=log_config.WANDB.RESUME_ID,
-                save_dir=log_config.FOLDER_EXP,
+                save_dir=str(save_dir),
                 version="",
                 name=log_config.BASE.NAME,
                 anonymous=False,
@@ -78,7 +78,7 @@ class BaseTask:
 
         if log_config.TENSORBOARD:
             tb_logger = TensorBoardLogger(
-                save_dir=log_config.FOLDER_EXP,
+                save_dir=str(save_dir),
                 sub_dir="tensorboard",
                 version="",
                 name=""
@@ -99,13 +99,17 @@ class BaseTask:
                     metrics_text_delimiter="\n",
                     metrics_format=".3e",
                 )),
+            EarlyStopping(
+                monitor='val_loss',
+                mode="min"
+            ),
             ModelCheckpoint(
-                dirpath=os.path.join(log_config.FOLDER_EXP, "checkpoints"),
+                dirpath=str(save_dir / "checkpoints"),
                 filename="{epoch}",
-                monitor="step",
-                mode="max",
+                monitor="val_loss",
+                mode="min",
                 every_n_epochs=log_config.SAVE_CHECKPOINT_EPOCH,
-                save_top_k=-1,  # 根据monitor保存最好的几个
+                save_top_k=5,
                 save_last=False,
                 save_on_train_epoch_end=True,
             ),
@@ -115,14 +119,13 @@ class BaseTask:
             ddp_strategy = "ddp"
         else:
             ddp_strategy = 'auto'
+
         trainer = L.Trainer(
             fast_dev_run=self.debug,
-            benchmark=True,
             max_epochs=self.epoch,
             accelerator=self.accelerator,
             devices=self.device,
             strategy=ddp_strategy,
-            default_root_dir=os.path.join(log_config.FOLDER_EXP, self.name),
             # 在步骤内多久记录一次, default: 50
             log_every_n_steps=log_config.LOG_EVERY_STEPS,
             deterministic=False,
@@ -133,6 +136,9 @@ class BaseTask:
             check_val_every_n_epoch=log_config.CHECK_VAL_EPOCH,
         )
         return trainer
+
+    def run(self, stage="train"):
+        pass
 
     @classmethod
     def setup_task(cls, config):
