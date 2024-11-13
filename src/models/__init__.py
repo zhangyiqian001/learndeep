@@ -1,11 +1,8 @@
-from .text_classification import *
+from .alexnet_module import AlexNetModule1x3, AlexNetModule3x3, AlexNetModule_IMAGENET1KV1
 
-import sys
+__all__ = [
+    "AlexNetModule1x3",
+    "AlexNetModule3x3",
+    "AlexNetModule_IMAGENET1KV1"
+]
 
-
-def create_model(config):
-    task = config.TASK
-    model_type = config.MODEL.MODEL_TYPE + "Module"
-    module = sys.modules[f"models.{task}"]
-    Model = module.__getattribute__(model_type)
-    return Model(config.MODEL)

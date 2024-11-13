@@ -1,28 +1,45 @@
-import torch
-from torch import nn
-from torch.utils.data.datapipes.iter.callable import MapperIterDataPipe
-from torch.utils.data.datapipes.iter.sharding import ShardingFilterIterDataPipe
-from torchtext.data import to_map_style_dataset
-from torchtext.datasets import AG_NEWS
-from transformers import BertTokenizer
+from typing import Union, Any, Tuple, Dict
+
+
+class A:
+    def __init__(self, args1, args2, a, b):
+        print(args1)
+        print(args2)
+        print(a)
+        print(b)
+
+def instantiate_class(args: Union[Any, Tuple[Any, ...]], init: Dict[str, Any]) -> Any:
+    """Instantiates a class with the given args and init.
+
+    Args:
+        args: Positional arguments required for instantiation.
+        init: Dict of the form {"class_path":...,"init_args":...}.
+
+    Returns:
+        The instantiated class object.
+
+    """
+    kwargs = init.get("init_args", {})
+    class_module, class_name = init["class_path"].rsplit(".", 1)
+    module = __import__(class_module, fromlist=[class_name])
+    args_class = getattr(module, class_name)
+    return args_class(*args, **kwargs)
+
+def fun(a, b):
+    pass
 if __name__ == '__main__':
-    ShardingFilterIterDataPipe
-    train_set, test_set = AG_NEWS()
-    print(train_set.source_datapipe)
-    train_set = to_map_style_dataset(train_set)
-    MapperIterDataPipe
-    print(train_set)
-    # tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased",)
-    # print(torch.tensor(tokenizer([i[1] for i in train_set[:10]], padding=True)['input_ids']).shape)
-    # a = tokenizer(train_set[0][1])
-    # print(torch.nn.functional.one_hot(torch.tensor(train_set[0][0]), num_classes=4))
-    # print(a)
-    # a = torch.rand(10, 1024)
-    # linear = nn.Linear(1024, 4)
-    # out = linear(a)
-    # print(out.shape)
-    # loss = nn.CrossEntropyLoss()
-    # g = loss(out, torch.rand(10, 4).view(-1))
-    # print(g)
-
-
+    k = {
+        "a": 1,
+        "b": 3,
+        "c": 2,
+    }
+    fun(**k)
+    # args = [1,2]
+    # init = {
+    #     "class_path": "test.A",
+    #     "init_args": {
+    #         "a": 3,
+    #         "b": 4,
+    #     }
+    # }
+    # print(instantiate_class(args, init))

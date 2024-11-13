@@ -1,11 +1,16 @@
+from typing import Any
+
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer
 
 
 class BaseDataModule(LightningDataModule):
 
-    def __init__(self, config):
+    def __init__(
+            self,
+            batch_size,
+            num_workers
+    ):
         super().__init__()
 
         self.train_set = None
@@ -13,12 +18,12 @@ class BaseDataModule(LightningDataModule):
         self.test_set = None
         self.predict_set = None
 
-        self.tokenizer_name = config.DATASET.TOKENIZER_NAME
+        self.batch_size = batch_size
+        self.num_workers = num_workers
 
-        self.batch_size = config.DATASET.BATCH_SIZE
-        self.num_workers = config.DATASET.NUM_WORKERS
-
-        self.persistent_workers = False
+        self.transfer = None
+        # 缓存workers
+        self.persistent_workers = True
         # 如果数据集大小不能被批处理大小整除,删除最后一个未完成的批
         self.drop_last = True
         self.collate_fn = None
@@ -56,6 +61,10 @@ class BaseDataModule(LightningDataModule):
             collate_fn=self.collate_fn
         )
 
-    def tokenizer(self, line):
-        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name, cache_dir="cache")
-        return tokenizer(line)
+    def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
+        if dataloader_idx == 0:
+            print(batch)
+        if self.transfer is None:
+            return {"inputs": batch[0], "targets": batch[1]}
+        else:
+            return {"inputs": self.transfer(batch[0]), "targets": batch[1]}
