@@ -14,16 +14,20 @@ PROCESSOR:
 # dataset config
 DATAMODULE:
   NAME: cifar10
-  CONFIG: default.yaml
+  BATCH_SIZE: 32
+  NUM_WORKERS: 16
+  VAL_RATE: 0.2
 # model config
 MODEL:
   NAME: alexnet
-  CONFIG: default.yaml
+  ARCH_CONFIG:
+    dropout: 0.2
+    num_classes:
 
 # train config
 TRAIN:
   EPOCH: 3001
-  PRETRAINED: ./logger/checkpoints/epoch=41.ckpt
+  PRETRAINED: checkpoints/epoch=85.ckpt
   LOSS:
     TYPE: CrossEntropyLoss
   OPTIM:
@@ -35,3 +39,4 @@ TRAIN:
     ARGS:
       task: multiclass
       top_k: 1
+      num_classes:

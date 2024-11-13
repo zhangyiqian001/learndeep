@@ -104,7 +104,7 @@ class TorchVisionDataModule(BaseDataModule):
         super().__init__(config, transfer)
         self.num_classes = None
         self.config = config
-        self.name = config.DATA_NAME
+        self.name = config.NAME.upper()
         self.data_dir = Path(registry.get_path("root")) / "data"
         self.val_rate = config.VAL_RATE
 
@@ -113,7 +113,10 @@ class TorchVisionDataModule(BaseDataModule):
             self.data_dir, train=True, download=True, transform = transforms.ToTensor(),)
         self.test_iter = DATASETS[self.name](
             self.data_dir, train=False, download=True, transform = transforms.ToTensor(),)
-        self.num_classes = len(self.train_iter.classes)
+        try:
+            self.num_classes = len(self.train_iter.classes)
+        except Exception:
+            raise Exception("不支持分类模型")
 
     def setup(self, stage: str) -> None:
         num_train = int(len(self.train_iter) * (1 - self.val_rate))

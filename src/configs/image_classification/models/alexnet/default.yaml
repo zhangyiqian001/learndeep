@@ -1,4 +1,0 @@
-MODEL_NAME: AlexNet
-PRETRAINED:
-ARCH_CONFIG:
-  dropout: 0.2

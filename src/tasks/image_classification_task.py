@@ -1,3 +1,4 @@
+from omegaconf import OmegaConf
 from torch import nn
 
 from tasks import BaseTask
@@ -14,25 +15,17 @@ class ImageClassificationTask(BaseTask):
         super().__init__(config)
         self.dynamic_config = dynamic_config
 
-        self.processor = None
-        self.module = None
-        self.datamodule = None
-        self.trainer = None
-
-
     def run(self, stage="train"):
-        config = self.build_config()
-        config = config | self.dynamic_config
-        self.datamodule = self.build_datamodule(config)
-        config['ARCH_CONFIG']['num_classes'] = self.datamodule.num_classes
-        config['metrics_args']['num_classes'] = self.datamodule.num_classes
-        self.module = self.build_module(config)
-        self.module.model.classifier.append(nn.Softmax(dim=1))
+        datamodule = self.build_datamodule()
+        self.module_config['ARCH_CONFIG']['num_classes'] = datamodule.num_classes
+        self.dynamic_config['metrics_args']['num_classes'] = datamodule.num_classes
+        module = self.build_module(OmegaConf.to_container(self.module_config) | self.dynamic_config)
+        module.model.classifier.append(nn.Softmax(dim=1))
         self.trainer = self.build_trainer()
         if stage == "train":
-            self.trainer.fit(self.module, self.datamodule, ckpt_path=self.pretrained)
+            self.trainer.fit(module, datamodule, ckpt_path=self.pretrained)
         elif stage == "test":
-            self.trainer.test(self.module, self.datamodule, ckpt_path=self.pretrained)
+            self.trainer.test(module, datamodule, ckpt_path=self.pretrained)
 
     @classmethod
     def setup_task(cls, config):

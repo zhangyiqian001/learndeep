@@ -1,4 +1,5 @@
 import torch
+from lightning.pytorch.cli import LightningCLI
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
@@ -11,7 +12,8 @@ from torchtext.datasets import AG_NEWS
 from transformers import BertTokenizer
 from omegaconf import OmegaConf
 
-from models import BaseModelModule
+from models import BaseModelModule, AlexNetModule
+from datasets import MnistDataModule
 from tasks import create_task
 from utils.registry import registry
 
@@ -23,15 +25,16 @@ def a(f):
 #     a, b = batch[0]
 #     return a, b
 if __name__ == '__main__':
-    a = torch.tensor(
-        [
-            [2.0, 0.5],
-            [0.5, 2.0]
-        ]
-    )
-    b = torch.tensor([1, 2])
-    loss = CrossEntropyLoss()
-    print(loss(a, b))
+    cli = LightningCLI(AlexNetModule, MnistDataModule)
+    # a = torch.tensor(
+    #     [
+    #         [2.0, 0.5],
+    #         [0.5, 2.0]
+    #     ]
+    # )
+    # b = torch.tensor([1, 2])
+    # loss = CrossEntropyLoss()
+    # print(loss(a, b))
     # config = OmegaConf.load("configs/text_classification/transformer.yaml")
     # print(config.get("BASE", 116))
     # v = {"F": 1}

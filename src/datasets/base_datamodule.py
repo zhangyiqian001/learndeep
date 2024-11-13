@@ -60,5 +60,5 @@ class BaseDataModule(LightningDataModule):
             return {"inputs": self.transfer(batch[0]), "targets": batch[1]}
 
     @classmethod
-    def from_config(cls, config, transfer=None):
-        return cls(config, transfer)
+    def from_config(cls, config):
+        return cls(config)
