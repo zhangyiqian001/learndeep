@@ -10,7 +10,7 @@ from processors.base_processor import BaseTextProcessor
 
 
 class WMT14Processor(BaseTextProcessor):
-    def __init__(self, file_name=None):
+    def __init__(self, *args, file_name=None):
         super().__init__(file_name)
 
     def train(self, data_iter, file_name, language='fr'):

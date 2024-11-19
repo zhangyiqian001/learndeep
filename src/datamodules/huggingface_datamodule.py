@@ -1,10 +1,7 @@
 from typing import Any
 
+import torch
 from datasets import load_dataset
-from lightning.pytorch.cli import instantiate_class
-from tokenizers import Tokenizer
-from tokenizers.models import BPE
-from tokenizers.trainers import BpeTrainer
 
 from datamodules.base_datamodule import BaseDataModule
 
@@ -16,12 +13,8 @@ class HuggingfaceDataModule(BaseDataModule):
             kwargs.pop('num_workers')
         )
         self.kwargs = kwargs
-        processor_src = kwargs.pop("processor_src", None)
-        processor_tgt = kwargs.pop("processor_tgt", None)
-        if processor_src is not None:
-            self.processor_src = instantiate_class(None, processor_src)
-        if processor_tgt is not None:
-            self.processor_tgt = instantiate_class(None, processor_tgt)
+        self.processor_src = kwargs.pop("processor_src", None)
+        self.processor_tgt = kwargs.pop("processor_tgt", None)
 
     def prepare_data(self) -> None:
         data = load_dataset(**self.kwargs)
@@ -43,14 +36,14 @@ class HuggingfaceTranslateDataModule(HuggingfaceDataModule):
 
     def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
         if self.processor_src is not None and self.processor_tgt is not None:
-            input_ids = self.processor_src(batch['translation']['en']).ids
-            target_ids = self.processor_tgt(batch['translation']['fr']).ids
+            input_ids = self.processor_src(batch['translation']['en'])
+            target_ids = self.processor_tgt(batch['translation']['fr'])
             return {
-                "inputs": input_ids,
-                "targets": target_ids
+                "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
+                "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
             }
         else:
-            raise Exception("input and target must have processor")
+            raise Exception("input and target must pass processor")
 
 
 if __name__ == '__main__':

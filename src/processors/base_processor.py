@@ -21,8 +21,8 @@ class BaseTextProcessor(BaseProcessor):
         self.tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
         self.tokenizer.pre_tokenizer = Whitespace()
         if file_name is not None:
-            self.file_name = str(self.cache_dir / file_name)
-            self.tokenizer = self.tokenizer.from_file(self.file_name)
+            self.tokenizer = self.tokenizer.from_file(file_name)
+            self.tokenizer.enable_padding()
 
     def __call__(self, row_iter):
         # ids, type_ids, tokens, offsets, attention_mask, special_tokens_mask, overflowing

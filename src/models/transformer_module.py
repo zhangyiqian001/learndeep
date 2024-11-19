@@ -4,8 +4,8 @@ from typing import Tuple
 import torch
 from torch import Tensor, nn
 
-from models.base_module import BaseModelModule
-
+from models.base_module import BaseTranslateModelModule
+from torchmetrics import BLEUScore
 
 class PositionalEncoding(nn.Module):
     def __init__(
@@ -25,8 +25,8 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.register_buffer('pos_embedding', pos_embedding)
 
-    def forward(self, token_embedding):
-        return self.dropout(token_embedding + self.pos_embedding[:token_embedding.size(0), :])
+    def forward(self, x):
+        return self.dropout(x + self.pos_embedding[:x.size(0), :])
 
 
 class TransformerModel(nn.Module):
@@ -53,48 +53,60 @@ class TransformerModel(nn.Module):
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
             dim_feedforward=dim_feedforward,
-            dropout=dropout
+            dropout=dropout,
+            batch_first=True
         )
 
-        # self.ff = nn.Linear(embed_size, num_classes)
+        self.ff = nn.Linear(embed_size, input_vocab_size)
 
     def _generate_square_subsequent_mask(self, sz):
         return torch.log(torch.tril(torch.ones(sz,sz)))
 
-    def forward(self, inputs: Tensor, target: Tensor) -> Tensor:
-        if has_mask:
-            device = src.device
-            if self.src_mask is None or self.src_mask.size(0) != len(src):
-                mask = self._generate_square_subsequent_mask(len(src)).to(device)
-                self.src_mask = mask
-        else:
-            self.src_mask = None
+    def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
+        # if has_mask:
+        #     device = src.device
+        #     if self.src_mask is None or self.src_mask.size(0) != len(src):
+        #         mask = self._generate_square_subsequent_mask(len(src)).to(device)
+        #         self.src_mask = mask
+        # else:
+        #     self.src_mask = None
         src_emb = self.pos_enc(self.src_embedding(inputs))
-        tgt_emb = self.pos_enc(self.tgt_embedding(target))
-
+        tgt_emb = self.pos_enc(self.tgt_embedding(targets))
         outs = self.transformer(
-            src_emb,
-            tgt_emb,
-            # src_mask,
-            # tgt_mask,
-            # None,
-            # src_padding_mask,
-            # tgt_padding_mask,
-            # memory_key_padding_mask
-            src=None,
-            tgt=None,
-            src_mask=None,
-            tgt_mask=None,
-            memory_mask=None,
-            src_key_padding_mask=None,
-            tgt_key_padding_mask=None,
-            memory_key_padding_mask=None,
+            src=src_emb,
+            tgt=tgt_emb,
+            # src_mask=None,
+            # tgt_mask=None,
+            # memory_mask=None,
+            # src_key_padding_mask=None,
+            # tgt_key_padding_mask=None,
+            # memory_key_padding_mask=None,
         )
+        return nn.functional.softmax(self.ff(outs), dim=1)
 
-        return self.ff(outs)
 
-
-class TransformerModule(BaseModelModule):
-    def __init__(self):
+class TransformerModule(BaseTranslateModelModule):
+    def __init__(
+            self,
+            input_vocab_size,
+            embed_size,
+            dropout=0.1,
+            num_heads=8,
+            num_encoder_layers=6,
+            num_decoder_layers=6,
+            dim_feedforward=2048,
+    ):
         super().__init__()
-        self.model = TransformerModel()
+        padding_idx = 3
+        self.loss = nn.CrossEntropyLoss(ignore_index=padding_idx)
+        # self.loss = nn.CrossEntropyLoss()
+        self.metrics = BLEUScore()
+        self.model = TransformerModel(
+            input_vocab_size,
+            embed_size,
+            dropout,
+            num_heads,
+            num_encoder_layers,
+            num_decoder_layers,
+            dim_feedforward
+        )

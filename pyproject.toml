@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 lightning = "^2.3.0"
-torchtext = "0.15.2" # gpu不支持win
+torchtext = "0.15.2" # gpu   不支持win
 torch = { version = "2.0.1", source="torch" }
 torchaudio = { version = "2.0.2", source="torch" }
 torchvision = { version = "0.15.2", source="torch" }
