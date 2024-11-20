@@ -1,18 +1,18 @@
 import math
-from typing import Tuple
 
 import torch
 from torch import Tensor, nn
+from torchmetrics.text import BLEUScore
 
 from models.base_module import BaseTranslateModelModule
-from torchmetrics import BLEUScore
+
 
 class PositionalEncoding(nn.Module):
     def __init__(
             self,
             emb_size,
             dropout,
-            maxlen=5000
+            maxlen=8192
     ):
         super().__init__()
         den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
@@ -20,13 +20,13 @@ class PositionalEncoding(nn.Module):
         pos_embedding = torch.zeros((maxlen, emb_size))
         pos_embedding[:, 0::2] = torch.sin(pos * den)
         pos_embedding[:, 1::2] = torch.cos(pos * den)
-        pos_embedding = pos_embedding.unsqueeze(-2)
+        pos_embedding = pos_embedding.unsqueeze(0)
 
         self.dropout = nn.Dropout(dropout)
         self.register_buffer('pos_embedding', pos_embedding)
 
     def forward(self, x):
-        return self.dropout(x + self.pos_embedding[:x.size(0), :])
+        return self.dropout(x + self.pos_embedding[:, :x.size(1), :])
 
 
 class TransformerModel(nn.Module):

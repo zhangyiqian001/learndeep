@@ -1,8 +1,6 @@
 import os
-from io import open
 
 import torch
-import pyarrow.parquet as pq
 from tokenizers.trainers import BpeTrainer
 
 from datamodules.huggingface_datamodule import HuggingfaceTranslateDataModule

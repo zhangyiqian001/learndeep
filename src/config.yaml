@@ -11,7 +11,7 @@ trainer:
     init_args:
       save_dir: .
       name: logger
-      version: version_7
+      version: null
       log_graph: false
       default_hp_metric: true
       prefix: ''
@@ -102,7 +102,7 @@ data:
       path: data/wmt14
       name: fr-en
       split: null
-      cache_dir: .
+      cache_dir: cache
       batch_size: 8
       num_workers: 2
       processor_src:
@@ -116,11 +116,11 @@ data:
 optimizer:
   class_path: torch.optim.Adam
   init_args:
-    lr: 1e-5
+    lr: 1e-6
     betas:
     - 0.9
-    - 0.999
-    eps: 1.0e-08
+    - 0.98
+    eps: 1.0e-09
     weight_decay: 0
     amsgrad: false
     foreach: null
