@@ -11,7 +11,6 @@ class AlexNetModule1x3(BaseModelModule):
         self.metrics = Accuracy("multiclass", num_classes=num_classes)
         self.model = AlexNet(num_classes, dropout)
         self.model.features[0] = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
-        self.model.classifier.append(nn.Softmax(dim=1))
     # def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
     #     result = {}
     #     for key,value in batch.items():
@@ -29,7 +28,6 @@ class AlexNetModule3x3(BaseModelModule):
         self.metrics = Accuracy("multiclass", num_classes=num_classes)
         self.model = AlexNet(num_classes, dropout)
         self.model.features[0] = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
-        self.model.classifier.append(nn.Softmax(dim=1))
 
 class AlexNetModule_IMAGENET1KV1(BaseModelModule):
     def __init__(self, num_classes):

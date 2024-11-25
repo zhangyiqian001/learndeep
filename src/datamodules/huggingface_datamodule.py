@@ -2,6 +2,7 @@ from typing import Any
 
 import torch
 from datasets import load_dataset
+from lightning.pytorch.utilities.types import EVAL_DATALOADERS
 
 from datamodules.base_datamodule import BaseDataModule
 
@@ -13,12 +14,13 @@ class HuggingfaceDataModule(BaseDataModule):
             kwargs.pop('num_workers')
         )
         self.kwargs = kwargs
-        self.processor_src = kwargs.pop("processor_src", None)
-        self.processor_tgt = kwargs.pop("processor_tgt", None)
+
 
     def prepare_data(self) -> None:
         data = load_dataset(**self.kwargs)
-        self.train_set, self.val_set, self.test_set = data['train'], data['validation'], data['test']
+        # self.train_set, self.val_set, self.test_set = data['train'], data['validation'], data['test']
+        self.train_set, self.val_set, self.test_set = data['validation'], data['validation'], data['test']
+        # self.train_set, self.test_set =  data['validation'], data['test']
 
     def setup(self, stage: str) -> None:
         pass
@@ -34,16 +36,16 @@ class HuggingfaceTranslateDataModule(HuggingfaceDataModule):
     def __init__(self, kwargs):
         super().__init__(kwargs)
 
-    def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
-        if self.processor_src is not None and self.processor_tgt is not None:
-            input_ids = self.processor_src(batch['translation']['en'])
-            target_ids = self.processor_tgt(batch['translation']['fr'])
-            return {
-                "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
-                "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
-            }
-        else:
-            raise Exception("input and target must pass processor")
+    # def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
+    #     if self.processor_src is not None and self.processor_tgt is not None:
+    #         input_ids = self.processor_src(batch['translation']['en'])
+    #         target_ids = self.processor_tgt(batch['translation']['fr'])
+    #         return {
+    #             "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
+    #             "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
+    #         }
+    #     else:
+    #         raise Exception("input and target must pass processor")
 
 
 if __name__ == '__main__':

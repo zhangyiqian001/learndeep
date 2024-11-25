@@ -94,6 +94,20 @@ model:
   init_args:
     input_vocab_size: 32000
     embed_size: 512
+    dropout: 0.1
+    num_heads: 8
+    num_encoder_layers: 6
+    num_decoder_layers: 6
+    dim_feedforward: 2048
+    padding_idx: 3
+    processor_src:
+      class_path: processors.WMT14Processor
+      init_args:
+        file_name: ./processors/cache/wmt14_en.json
+    processor_tgt:
+      class_path: processors.WMT14Processor
+      init_args:
+        file_name: ./processors/cache/wmt14_fr.json
 data:
   class_path: datamodules.HuggingfaceTranslateDataModule
   init_args:
@@ -103,20 +117,13 @@ data:
       name: fr-en
       split: null
       cache_dir: cache
-      batch_size: 8
+      batch_size: 16
       num_workers: 2
-      processor_src:
-        class_path: processors.WMT14Processor
-        init_args:
-          file_name: ./processors/cache/wmt14_en.json
-      processor_tgt:
-        class_path: processors.WMT14Processor
-        init_args:
-          file_name: ./processors/cache/wmt14_fr.json
+
 optimizer:
   class_path: torch.optim.Adam
   init_args:
-    lr: 1e-6
+    lr: 1e-4
     betas:
     - 0.9
     - 0.98
@@ -129,4 +136,4 @@ optimizer:
     differentiable: false
     fused: null
 lr_scheduler: null
-ckpt_path: null
+ckpt_path: ./logger/version_5/checkpoints/epoch=3-step=748.ckpt

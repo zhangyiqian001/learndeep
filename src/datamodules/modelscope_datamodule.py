@@ -24,22 +24,7 @@ class ModelscopeDataModule(BaseDataModule):
         self.cache_dir = cache_dir
 
     def prepare_data(self) -> None:
-        inspect_dataset(self.name, self.cache_dir)
-        builder = load_dataset_builder(
-            str(Path(self.cache_dir) / "wmt_utils.py"),
-            language_pair=("fr", "de"),
-            subsets={
-                datasets.Split.TRAIN: ["commoncrawl_frde"],
-                datasets.Split.VALIDATION: ["euelections_dev2019"],
-            },
-        )
-
-        # Standard version
-        builder.download_and_prepare()
-        ds = builder.as_dataset()
-        print(ds)
-        # Streamable version
-        # ds = builder.as_streaming_dataset()
+        pass
 
     def setup(self, stage: str) -> None:
         pass

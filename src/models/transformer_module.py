@@ -12,7 +12,7 @@ class PositionalEncoding(nn.Module):
             self,
             emb_size,
             dropout,
-            maxlen=8192
+            maxlen=40960
     ):
         super().__init__()
         den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
@@ -39,8 +39,11 @@ class TransformerModel(nn.Module):
             num_encoder_layers=6,
             num_decoder_layers=6,
             dim_feedforward=2048,
+            padding_idx=0
     ):
         super().__init__()
+
+        self.padding_idx = padding_idx
         # Output of embedding must be equal (embed_size)
         self.src_embedding = nn.Embedding(input_vocab_size, embed_size)
         self.tgt_embedding = nn.Embedding(input_vocab_size, embed_size)
@@ -75,14 +78,15 @@ class TransformerModel(nn.Module):
         outs = self.transformer(
             src=src_emb,
             tgt=tgt_emb,
-            # src_mask=None,
-            # tgt_mask=None,
+            # src_mask=(inputs != 0),
+            # tgt_mask=(targets != 0),
             # memory_mask=None,
-            # src_key_padding_mask=None,
-            # tgt_key_padding_mask=None,
+            src_key_padding_mask=(inputs == self.padding_idx),
+            tgt_key_padding_mask=(targets == self.padding_idx),
             # memory_key_padding_mask=None,
         )
-        return nn.functional.softmax(self.ff(outs), dim=1)
+        # return nn.functional.softmax(self.ff(outs), dim=2)
+        return self.ff(outs)
 
 
 class TransformerModule(BaseTranslateModelModule):
@@ -95,12 +99,14 @@ class TransformerModule(BaseTranslateModelModule):
             num_encoder_layers=6,
             num_decoder_layers=6,
             dim_feedforward=2048,
+            padding_idx=0,
+            processor_src=None,
+            processor_tgt=None,
     ):
         super().__init__()
-        padding_idx = 3
         self.loss = nn.CrossEntropyLoss(ignore_index=padding_idx)
         # self.loss = nn.CrossEntropyLoss()
-        self.metrics = BLEUScore()
+        self.metrics = BLEUScore(n_gram=1)
         self.model = TransformerModel(
             input_vocab_size,
             embed_size,
@@ -108,5 +114,19 @@ class TransformerModule(BaseTranslateModelModule):
             num_heads,
             num_encoder_layers,
             num_decoder_layers,
-            dim_feedforward
+            dim_feedforward,
+            padding_idx
         )
+        self.processor_src = processor_src
+        self.processor_tgt = processor_tgt
+
+    def on_before_batch_transfer(self, batch, dataloader_idx: int):
+        if self.processor_src is not None and self.processor_tgt is not None:
+            input_ids = self.processor_src(batch['translation']['en'])
+            target_ids = self.processor_tgt(batch['translation']['fr'])
+            return {
+                "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
+                "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
+            }
+        else:
+            raise Exception("input and target must pass processor")

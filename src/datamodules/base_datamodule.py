@@ -61,10 +61,10 @@ class BaseDataModule(LightningDataModule):
             collate_fn=self.collate_fn
         )
 
-    def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
-        if dataloader_idx == 0:
-            print(batch)
-        if self.transfer is None:
-            return {"inputs": batch[0], "targets": batch[1]}
-        else:
-            return {"inputs": self.transfer(batch[0]), "targets": batch[1]}
+    # def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
+    #     if dataloader_idx == 0:
+    #         print(batch)
+    #     if self.transfer is None:
+    #         return {"inputs": batch[0], "targets": batch[1]}
+    #     else:
+    #         return {"inputs": self.transfer(batch[0]), "targets": batch[1]}
