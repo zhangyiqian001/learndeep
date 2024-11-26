@@ -136,4 +136,4 @@ optimizer:
     differentiable: false
     fused: null
 lr_scheduler: null
-ckpt_path: ./logger/version_5/checkpoints/epoch=3-step=748.ckpt
+ckpt_path: null

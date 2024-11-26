@@ -66,26 +66,23 @@ class TransformerModel(nn.Module):
         return torch.log(torch.tril(torch.ones(sz,sz)))
 
     def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
-        # if has_mask:
-        #     device = src.device
-        #     if self.src_mask is None or self.src_mask.size(0) != len(src):
-        #         mask = self._generate_square_subsequent_mask(len(src)).to(device)
-        #         self.src_mask = mask
-        # else:
-        #     self.src_mask = None
         src_emb = self.pos_enc(self.src_embedding(inputs))
         tgt_emb = self.pos_enc(self.tgt_embedding(targets))
+
+        src_pad_mask = (inputs == self.padding_idx)
+        tgt_pad_mask = (targets == self.padding_idx)
+        tgt_sub_mask = nn.Transformer.generate_square_subsequent_mask(targets.shape[1], device=targets.device)
+
         outs = self.transformer(
             src=src_emb,
             tgt=tgt_emb,
             # src_mask=(inputs != 0),
-            # tgt_mask=(targets != 0),
+            tgt_mask=tgt_sub_mask,
             # memory_mask=None,
-            src_key_padding_mask=(inputs == self.padding_idx),
-            tgt_key_padding_mask=(targets == self.padding_idx),
+            src_key_padding_mask=src_pad_mask,
+            tgt_key_padding_mask=tgt_pad_mask,
             # memory_key_padding_mask=None,
         )
-        # return nn.functional.softmax(self.ff(outs), dim=2)
         return self.ff(outs)
 
 
