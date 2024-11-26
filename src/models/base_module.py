@@ -21,7 +21,7 @@ class BaseModelModule(LightningModule):
         loss = self.loss(output, target)
         acc = self.metrics(output.argmax(1), target)
         values = {"train_loss": loss, "train_acc": acc}
-        self.log_dict(values, prog_bar=True)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
@@ -30,7 +30,7 @@ class BaseModelModule(LightningModule):
         loss = self.loss(output, target)
         acc = self.metrics(output.argmax(1), target)
         values = {"val_loss": loss, "val_acc": acc}
-        self.log_dict(values, prog_bar=True)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def test_step(self, batch: Any, batch_idx):
@@ -64,7 +64,7 @@ class BaseTranslateModelModule(LightningModule):
         for i in range(len(infer_text)):
             acc += self.metrics(infer_text[i], [target_text[i]])
         values = {"train_loss": loss, "train_acc": acc / len(target_text)}
-        self.log_dict(values, prog_bar=True)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
@@ -76,7 +76,7 @@ class BaseTranslateModelModule(LightningModule):
         for i in range(len(infer_text)):
             acc += self.metrics(infer_text[i], [target_text[i]])
         values = {"val_loss": loss, "val_acc": acc / len(target_text)}
-        self.log_dict(values, prog_bar=True)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def test_step(self, batch: Any, batch_idx):
