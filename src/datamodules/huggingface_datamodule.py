@@ -1,8 +1,4 @@
-from typing import Any
-
-import torch
 from datasets import load_dataset
-from lightning.pytorch.utilities.types import EVAL_DATALOADERS
 
 from datamodules.base_datamodule import BaseDataModule
 
@@ -17,19 +13,13 @@ class HuggingfaceDataModule(BaseDataModule):
 
 
     def prepare_data(self) -> None:
-        data = load_dataset(**self.kwargs)
+        pass
         # self.train_set, self.val_set, self.test_set = data['train'], data['validation'], data['test']
-        self.train_set, self.val_set, self.test_set = data['validation'], data['validation'], data['test']
         # self.train_set, self.test_set =  data['validation'], data['test']
 
     def setup(self, stage: str) -> None:
-        pass
-        # num_train = int(len(self.train_iter) * (1 - self.val_rate))
-        # num_val = int(len(self.train_iter) * self.val_rate)
-        # split_train_, split_valid_ = random_split(self.train_iter, [num_train, num_val])
-        # self.train_set = split_train_
-        # self.val_set = split_valid_
-        # self.test_set = self.test_iter
+        self.data = load_dataset(**self.kwargs)
+        self.train_set, self.val_set, self.test_set = self.data['train'], self.data['validation'], self.data['test']
 
 
 class HuggingfaceTranslateDataModule(HuggingfaceDataModule):

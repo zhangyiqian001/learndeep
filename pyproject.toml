@@ -17,6 +17,11 @@ numpy = "1.26.4"
 protobuf = "3.20.1"
 litdata = "^0.2.30"
 jsonargparse = {extras = ["signatures"], version = "^4.34.0"}
+tokenizers = "^0.20.3"
+transformers = "^4.46.3"
+datasets = "^3.1.0"
+tensorboardx = "^2.6.2.2"
+rich = "^13.9.4"
 
 [[tool.poetry.source]]
 name = "orgin"
