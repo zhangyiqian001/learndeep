@@ -9,6 +9,8 @@ class BaseModelModule(LightningModule):
     def __init__(self):
         super().__init__()
         self.model = None
+        self.loss = None
+        self.metrics = None
 
     def forward(self, **kwargs) -> Tensor:
         return self.model(kwargs)

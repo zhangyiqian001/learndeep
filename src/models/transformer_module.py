@@ -2,7 +2,6 @@ import math
 
 import torch
 from torch import Tensor, nn
-from torchmetrics.text import BLEUScore
 
 from models.base_module import BaseTranslateModelModule
 
@@ -99,11 +98,12 @@ class TransformerModule(BaseTranslateModelModule):
             padding_idx=0,
             processor_src=None,
             processor_tgt=None,
+            loss=None,
+            metrics=None
     ):
         super().__init__()
-        self.loss = nn.CrossEntropyLoss(ignore_index=padding_idx)
-        # self.loss = nn.CrossEntropyLoss()
-        self.metrics = BLEUScore(n_gram=1)
+        self.loss = loss
+        self.metrics = metrics
         self.model = TransformerModel(
             input_vocab_size,
             embed_size,

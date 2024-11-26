@@ -99,7 +99,15 @@ model:
     num_encoder_layers: 6
     num_decoder_layers: 6
     dim_feedforward: 2048
-    padding_idx: 3
+    padding_idx: &padding_idx 3
+    loss:
+      class_path: torch.nn.CrossEntropyLoss
+      init_args:
+        ignore_index: *padding_idx
+    metrics:
+      class_path: torchmetrics.text.BLEUScore
+      init_args:
+        n_gram: 1
     processor_src:
       class_path: processors.WMT14Processor
       init_args:

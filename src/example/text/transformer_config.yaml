@@ -10,8 +10,8 @@ trainer:
     - class_path: lightning.pytorch.loggers.TensorBoardLogger
       init_args:
         save_dir: .
-        name: loggers
-        version: version_7
+        name: logger
+        version: null
         log_graph: false
         default_hp_metric: true
         prefix: ''
@@ -90,25 +90,52 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: models.AlexNetModule3x3
+  class_path: models.TransformerModule
   init_args:
-    num_classes: 10
-    dropout: 0.2
+    input_vocab_size: 32000
+    embed_size: 512
+    dropout: 0.1
+    num_heads: 8
+    num_encoder_layers: 6
+    num_decoder_layers: 6
+    dim_feedforward: 2048
+    padding_idx: &padding_idx 3
+    loss:
+      class_path: torch.nn.CrossEntropyLoss
+      init_args:
+        ignore_index: *padding_idx
+    metrics:
+      class_path: torchmetrics.text.BLEUScore
+      init_args:
+        n_gram: 1
+    processor_src:
+      class_path: processors.WMT14Processor
+      init_args:
+        file_name: ./processors/cache/wmt14_en.json
+    processor_tgt:
+      class_path: processors.WMT14Processor
+      init_args:
+        file_name: ./processors/cache/wmt14_fr.json
 data:
-  class_path: datamodules.TorchTextDataModule
+  class_path: datamodules.HuggingfaceTranslateDataModule
   init_args:
-    name: CIFAR10
-    val_rate: 0.2
-    batch_size: 32
-    num_workers: 16
+    #    kwargs: { 'path': 'data/wmt14', 'name': 'fr-en', 'split': null, 'cache_dir': '..', 'batch_size':32, 'num_workers': 16 }
+    kwargs:
+      path: data/wmt14
+      name: fr-en
+      split: null
+      cache_dir: cache
+      batch_size: 16
+      num_workers: 2
+
 optimizer:
   class_path: torch.optim.Adam
   init_args:
-    lr: 1e-5
+    lr: 1e-4
     betas:
       - 0.9
-      - 0.999
-    eps: 1.0e-08
+      - 0.98
+    eps: 1.0e-09
     weight_decay: 0
     amsgrad: false
     foreach: null

@@ -1,17 +1,18 @@
 # learndeep
 
-#### 介绍
-- 常用模型训练、测试、评估
-- 同一数据集不同模型结果评估
-- 支持Loss、metric结果可视化（tensorboard，wandb，）
-- 支持Transformer可视化
+#### 项目介绍
+基于 PyTorch Lightning 框架
+
+经典模型复现:
+- Transformer
+
 
 #### 训练脚本
 ```sh
-python .\train.py  .\configs\text_classification\transformer.yaml
+python .\main.py fit -c .\config.yaml
 ```
 
 #### 可视化脚本
 ```sh
-tensorboard --logdir .\\logger\\Transformer\\Transformer\\tensorboard\\
+tensorboard --logdir .\\logger\\
 ```
