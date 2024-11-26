@@ -6,14 +6,19 @@ from torch import Tensor
 
 class BaseModelModule(LightningModule):
 
-    def __init__(self):
+    def __init__(
+            self,
+            model,
+            loss,
+            metrics
+    ):
         super().__init__()
-        self.model = None
-        self.loss = None
-        self.metrics = None
+        self.model = model
+        self.loss = loss
+        self.metrics = metrics
 
-    def forward(self, **kwargs) -> Tensor:
-        return self.model(kwargs)
+    def forward(self, x) -> Tensor:
+        return self.model(x)
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -38,14 +43,14 @@ class BaseModelModule(LightningModule):
         output = self(inputs)
         return output
 
-    def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = [v.to(device) for v in value]
-        return result
+    # def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
+    #     result = {}
+    #     for key, value in batch.items():
+    #         if isinstance(value, dict):
+    #             result[key] = {k: v.to(device) for k, v in value}
+    #         else:
+    #             result[key] = [v.to(device) for v in value]
+    #     return result
 
 
 class BaseTranslateModelModule(LightningModule):
