@@ -5,6 +5,9 @@
 
 经典模型复现:
 - Transformer
+- bert
+- vae
+- vqvae
 
 
 #### 训练脚本

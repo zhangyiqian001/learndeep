@@ -4,7 +4,7 @@ import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
 
-from modules.base_module import BaseModelModule
+from modules.base_module import BaseExtractModule
 
 
 class VectorQuantizer(nn.Module):
@@ -80,8 +80,8 @@ class VQVAE(nn.Module):
     def __init__(
             self,
             in_channels: int,
-            embedding_dim: int,
-            num_embeddings: int,
+            embedding_dim: int = 64,
+            num_embeddings: int = 512,
             hidden_dims: List = None,
             beta: float = 0.25,
             img_size: int = 64,
@@ -201,7 +201,7 @@ class VQVAE(nn.Module):
 
     def loss_function(
             self,
-            *args,
+            args,
             **kwargs
     ) -> dict:
         """
@@ -235,12 +235,10 @@ class VQVAE(nn.Module):
         return self.forward(x)[0]
 
 
-class VQVAEModule(BaseModelModule):
-    def __init__(self, model, loss, metrics):
+class VQVAEModule(BaseExtractModule):
+    def __init__(self, model):
         super().__init__()
         self.model = model
-        self.loss = loss
-        self.metrics = metrics
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         return {

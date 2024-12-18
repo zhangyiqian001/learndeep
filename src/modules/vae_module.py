@@ -72,7 +72,7 @@ class VAE(nn.Module):
                                output_padding=1),
             nn.BatchNorm2d(hidden_dims[-1]),
             nn.LeakyReLU(),
-            nn.Conv2d(hidden_dims[-1], out_channels=3,
+            nn.Conv2d(hidden_dims[-1], out_channels=in_channels,
                       kernel_size=3, padding=1),
             nn.Tanh())
 
@@ -198,7 +198,7 @@ class VAEModule(BaseExtractModule):
 
 if __name__ == '__main__':
     model = VAE(in_channels=1, latent_dim=128)
-    module = VAEModule.load_from_checkpoint(r"D:\learndeep\src\logger\version_3\checkpoints\epoch=19-step=7500.ckpt", model=model)
+    module = VAEModule.load_from_checkpoint(r"D:\learndeep\src\logger\version_3\checkpoints\epoch=737-step=276750.ckpt", model=model)
     module.eval()
     samples = module.model.sample(10, 0)
     vutils.save_image(samples.cpu().data,
