@@ -1,21 +1,14 @@
 from typing import Any
 import torch
+import torchvision
 from lightning.pytorch import LightningModule
 from torch import Tensor
 
 
 class BaseModelModule(LightningModule):
 
-    def __init__(
-            self,
-            model,
-            loss,
-            metrics
-    ):
+    def __init__(self):
         super().__init__()
-        self.model = model
-        self.loss = loss
-        self.metrics = metrics
 
     def forward(self, x) -> Tensor:
         return self.model(x)
@@ -43,14 +36,8 @@ class BaseModelModule(LightningModule):
         output = self(inputs)
         return output
 
-    # def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
-    #     result = {}
-    #     for key, value in batch.items():
-    #         if isinstance(value, dict):
-    #             result[key] = {k: v.to(device) for k, v in value}
-    #         else:
-    #             result[key] = [v.to(device) for v in value]
-    #     return result
+    def infer(self, x):
+        pass
 
 
 class BaseTranslateModelModule(LightningModule):
@@ -108,3 +95,41 @@ class BaseTranslateModelModule(LightningModule):
             else:
                 result[key] = value.to(device)
         return result
+
+    def infer(self, x):
+        pass
+
+
+class BaseExtractModule(LightningModule):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x) -> Tensor:
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs)
+        loss = self.model.loss_function(output)
+        loss = {f"train_{key}": value for key, value in loss.items()}
+        self.log_dict(loss, prog_bar=True, sync_dist=True)
+        return loss['train_loss']
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs)
+        loss = self.model.loss_function(output)
+        loss = {f"val_{key}": value for key, value in loss.items()}
+        sample_imgs = inputs[:5]
+        grid = torchvision.utils.make_grid(sample_imgs)
+        self.loggers[0].experiment.add_image('example_images', grid, 0)
+        self.log_dict(loss, prog_bar=True, sync_dist=True)
+        return loss['val_loss']
+
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
+        output = self(inputs)
+        return output
+
+    def infer(self, x):
+        pass

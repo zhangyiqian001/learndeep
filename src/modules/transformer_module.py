@@ -3,7 +3,7 @@ import math
 import torch
 from torch import Tensor, nn
 
-from models.base_module import BaseTranslateModelModule
+from modules.base_module import BaseTranslateModelModule
 
 
 class PositionalEncoding(nn.Module):
@@ -60,9 +60,6 @@ class TransformerModel(nn.Module):
         )
 
         self.ff = nn.Linear(embed_size, input_vocab_size)
-
-    def _generate_square_subsequent_mask(self, sz):
-        return torch.log(torch.tril(torch.ones(sz,sz)))
 
     def forward(self, inputs: Tensor, targets: Tensor) -> Tensor:
         src_emb = self.pos_enc(self.src_embedding(inputs))

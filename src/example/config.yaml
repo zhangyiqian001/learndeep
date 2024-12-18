@@ -293,7 +293,7 @@ fit:
 
   # One or more arguments specifying "class_path" and "init_args" for any subclass of LightningModule. (type: Optional[LightningModule], default: null, known subclasses: lightning.LightningModule)
   model:
-    class_path: models.alexnet_module.AlexNetModule
+    class_path: modules.AlexNetModule
     init_args:
       num_classes: 10
 

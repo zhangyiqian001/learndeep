@@ -90,7 +90,7 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: models.AlexNetModule1x3
+  class_path: modules.AlexNetModule1x3
   init_args:
     num_classes: &num_classes 10
     dropout: 0.2

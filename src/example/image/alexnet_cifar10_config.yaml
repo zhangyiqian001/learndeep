@@ -90,7 +90,7 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: models.AlexNetModule3x3
+  class_path: modules.AlexNetModule3x3
   init_args:
     model:
       class_path: torchvision.models.AlexNet

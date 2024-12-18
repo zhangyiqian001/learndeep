@@ -3,7 +3,7 @@ from typing import Any
 import torch
 from torch import nn
 
-from models.base_module import BaseModelModule
+from modules.base_module import BaseModelModule
 
 
 class AlexNetModuleBase(BaseModelModule):
@@ -13,11 +13,10 @@ class AlexNetModuleBase(BaseModelModule):
             loss,
             metrics
     ):
-        super().__init__(
-            model,
-            loss,
-            metrics
-        )
+        super().__init__()
+        self.model = model
+        self.loss = loss
+        self.metrics = metrics
 
     def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
         return {

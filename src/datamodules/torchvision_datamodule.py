@@ -113,10 +113,14 @@ class TorchVisionDataModule(BaseDataModule):
         self.cache_dir = cache_dir
 
     def prepare_data(self) -> None:
+        train_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
+                                               # transforms.CenterCrop(148),
+                                               transforms.Resize(64),
+                                               transforms.ToTensor(),])
         self.train_iter = DATASETS[self.name](
-            self.cache_dir, train=True, download=True, transform=transforms.ToTensor(), )
+            self.cache_dir, train=True, download=True, transform=train_transforms, )
         self.test_iter = DATASETS[self.name](
-            self.cache_dir, train=False, download=True, transform=transforms.ToTensor(), )
+            self.cache_dir, train=False, download=True, transform=train_transforms, )
 
     def setup(self, stage: str) -> None:
         num_train = int(len(self.train_iter) * (1 - self.val_rate))
@@ -125,3 +129,27 @@ class TorchVisionDataModule(BaseDataModule):
         self.train_set = split_train_
         self.val_set = split_valid_
         self.test_set = self.test_iter
+
+
+class CelebADataModule(BaseDataModule):
+    def __init__(
+            self,
+            val_rate=0.2,
+            cache_dir='data',
+            batch_size=32,
+            num_workers=4,
+    ):
+        super().__init__(
+            batch_size,
+            num_workers
+        )
+        self.val_rate = val_rate
+        self.cache_dir = cache_dir
+
+    def setup(self, stage: str) -> None:
+        self.train_set = CelebA(
+            self.cache_dir, split="train", download=True, transform=transforms.ToTensor(), )
+        self.val_set = CelebA(
+            self.cache_dir, split="valid", download=True, transform=transforms.ToTensor(), )
+        self.test_set = CelebA(
+            self.cache_dir, split="test", download=True, transform=transforms.ToTensor(), )
