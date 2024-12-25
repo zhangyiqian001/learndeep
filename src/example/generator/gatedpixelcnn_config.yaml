@@ -90,14 +90,15 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: modules.PixelCNNModule
+  class_path: modules.GatedPixelCNNModule
   init_args:
     model:
-      class_path: modules.pixelcnn_module.PixelCNN
+      class_path: modules.gatedpixelcnn_module.GatedPixelCNN
       init_args:
-        n_channel: 3
-        h: 128
-        discrete_channel: 256
+        input_dim: 512
+        dim: 64
+        n_layers: 15
+        n_classes: 10
     loss:
       class_path: torch.nn.CrossEntropyLoss
 data:

@@ -135,7 +135,40 @@ class BaseExtractModule(LightningModule):
         pass
 
 
-class BaseGenerateModule(LightningModule):
+class BaseGenerate2Module(LightningModule):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x, y) -> Tensor:
+        return self.model(x, y)
+
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs, target)
+        output = output.permute(0, 2, 3, 1).contiguous()
+        loss = self.loss(output.view(-1, self.model.input_dim), inputs.view(-1))
+        values = {"train_loss": loss}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs, target)
+        output = output.permute(0, 2, 3, 1).contiguous()
+        loss = self.loss(output.view(-1, self.model.input_dim), inputs.view(-1))
+        values = {"val_loss": loss}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
+        output = self(inputs)
+        return output
+
+    def infer(self, x):
+        pass
+
+class BaseGenerate1Module(LightningModule):
     def __init__(self):
         super().__init__()
 
@@ -143,20 +176,22 @@ class BaseGenerateModule(LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
-        inputs, target = batch['inputs']
+        inputs, target = batch['inputs'], batch['targets']
         output = self(inputs)
-        loss = self.loss(output, target)
-        acc = self.metrics(output.argmax(1), target)
-        values = {"train_loss": loss, "train_acc": acc}
+        output = output.contiguous()
+        target = (inputs.data.view(-1) * 255).long()
+        loss = self.loss(output.view(-1, 256), target)
+        values = {"train_loss": loss}
         self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
         output = self(inputs)
-        loss = self.loss(output, target)
-        acc = self.metrics(output.argmax(1), target)
-        values = {"val_loss": loss, "val_acc": acc}
+        output = output.contiguous()
+        target = (inputs.data.view(-1) * 255).long()
+        loss = self.loss(output.view(-1, 256), target)
+        values = {"val_loss": loss}
         self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 

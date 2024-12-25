@@ -1,157 +1,138 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions.normal import Normal
 
-from torch.distributions import kl_divergence
-
-from modules.base_module import BaseGenerateModule
+from modules.base_module import BaseGenerate1Module
 
 
-def weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        try:
-            nn.init.xavier_uniform_(m.weight.data)
-            m.bias.data.fill_(0)
-        except AttributeError:
-            print("Skipping initialization of ", classname)
+class MaskedConv2d(nn.Conv2d):
+    def __init__(self, mask_type, c_in, c_out, k_size, stride, pad):
+        """2D Convolution with masked weight for Autoregressive connection"""
+        super(MaskedConv2d, self).__init__(
+            c_in, c_out, k_size, stride, pad, bias=False)
+        assert mask_type in ['A', 'B']
+        self.mask_type = mask_type
+        ch_out, ch_in, height, width = self.weight.size()
 
+        # Mask
+        #         -------------------------------------
+        #        |  1       1       1       1       1 |
+        #        |  1       1       1       1       1 |
+        #        |  1       1    1 if B     0       0 |   H // 2
+        #        |  0       0       0       0       0 |   H // 2 + 1
+        #        |  0       0       0       0       0 |
+        #         -------------------------------------
+        #  index    0       1     W//2    W//2+1
 
-class GatedActivation(nn.Module):
-    def __init__(self):
-        super().__init__()
+        mask = torch.ones(ch_out, ch_in, height, width)
+        if mask_type == 'A':
+            # First Convolution Only
+            # => Restricting connections to
+            #    already predicted neighborhing channels in current pixel
+            mask[:, :, height // 2, width // 2:] = 0
+            mask[:, :, height // 2 + 1:] = 0
+        else:
+            mask[:, :, height // 2, width // 2 + 1:] = 0
+            mask[:, :, height // 2] = 0
+        self.register_buffer('mask', mask)
 
     def forward(self, x):
-        x, y = x.chunk(2, dim=1)
-        return F.tanh(x) * F.sigmoid(y)
+        self.weight.data *= self.mask
+        return super(MaskedConv2d, self).forward(x)
 
 
-class GatedMaskedConv2d(nn.Module):
-    def __init__(self, mask_type, dim, kernel, residual=True, n_classes=10):
-        super().__init__()
-        assert kernel % 2 == 1, print("Kernel size must be odd")
-        self.mask_type = mask_type
-        self.residual = residual
+def maskAConv(c_in=3, c_out=256, k_size=7, stride=1, pad=3):
+    """2D Masked Convolution (type A)"""
+    return nn.Sequential(
+        MaskedConv2d('A', c_in, c_out, k_size, stride, pad),
+        nn.BatchNorm2d(c_out))
 
-        self.class_cond_embedding = nn.Embedding(
-            n_classes, 2 * dim
+
+class MaskBConvBlock(nn.Module):
+    def __init__(self, h=128, k_size=3, stride=1, pad=1):
+        """1x1 Conv + 2D Masked Convolution (type B) + 1x1 Conv"""
+        super(MaskBConvBlock, self).__init__()
+
+        self.net = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(2 * h, h, 1),  # 1x1
+            nn.BatchNorm2d(h),
+            nn.ReLU(),
+            MaskedConv2d('B', h, h, k_size, stride, pad),
+            nn.BatchNorm2d(h),
+            nn.ReLU(),
+            nn.Conv2d(h, 2 * h, 1),  # 1x1
+            nn.BatchNorm2d(2 * h)
         )
 
-        kernel_shp = (kernel // 2 + 1, kernel)  # (ceil(n/2), n)
-        padding_shp = (kernel // 2, kernel // 2)
-        self.vert_stack = nn.Conv2d(
-            dim, dim * 2,
-            kernel_shp, 1, padding_shp
-        )
+    def forward(self, x):
+        """Residual connection"""
+        return self.net(x) + x
+class PixelCNN(nn.Module):
+    def __init__(self, n_channel=3, h=128, discrete_channel=256):
+        """PixelCNN Model"""
+        super(PixelCNN, self).__init__()
 
-        self.vert_to_horiz = nn.Conv2d(2 * dim, 2 * dim, 1)
+        self.discrete_channel = discrete_channel
 
-        kernel_shp = (1, kernel // 2 + 1)
-        padding_shp = (0, kernel // 2)
-        self.horiz_stack = nn.Conv2d(
-            dim, dim * 2,
-            kernel_shp, 1, padding_shp
-        )
+        self.MaskAConv = maskAConv(n_channel, 2 * h, k_size=7, stride=1, pad=3)
+        MaskBConv = []
+        for i in range(15):
+            MaskBConv.append(MaskBConvBlock(h, k_size=3, stride=1, pad=1))
+        self.MaskBConv = nn.Sequential(*MaskBConv)
 
-        self.horiz_resid = nn.Conv2d(dim, dim, 1)
+        # 1x1 conv to 3x256 channels
+        self.out = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(2 * h, 1024, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(1024),
+            nn.ReLU(),
+            nn.Conv2d(1024, n_channel * discrete_channel, kernel_size=1, stride=1, padding=0))
 
-        self.gate = GatedActivation()
+    def forward(self, x):
+        """
+        Args:
+            x: [batch_size, channel, height, width]
+        Return:
+            out [batch_size, channel, height, width, 256]
+        """
+        batch_size, c_in, height, width = x.size()
 
-    def make_causal(self):
-        self.vert_stack.weight.data[:, :, -1].zero_()  # Mask final row
-        self.horiz_stack.weight.data[:, :, :, -1].zero_()  # Mask final column
+        # [batch_size, 2h, 32, 32]
+        x = self.MaskAConv(x)
 
-    def forward(self, x_v, x_h, h):
-        if self.mask_type == 'A':
-            self.make_causal()
+        # [batch_size, 2h, 32, 32]
+        x = self.MaskBConv(x)
 
-        h = self.class_cond_embedding(h)
-        h_vert = self.vert_stack(x_v)
-        h_vert = h_vert[:, :, :x_v.size(-1), :]
-        out_v = self.gate(h_vert + h[:, :, None, None])
+        # [batch_size, 3x256, 32, 32]
+        x = self.out(x)
 
-        h_horiz = self.horiz_stack(x_h)
-        h_horiz = h_horiz[:, :, :, :x_h.size(-2)]
-        v2h = self.vert_to_horiz(h_vert)
+        # [batch_size, 3, 256, 32, 32]
+        x = x.view(batch_size, c_in, self.discrete_channel, height, width)
 
-        out = self.gate(v2h + h_horiz + h[:, :, None, None])
-        if self.residual:
-            out_h = self.horiz_resid(out) + x_h
-        else:
-            out_h = self.horiz_resid(out)
+        # [batch_size, 3, 32, 32, 256]
+        x = x.permute(0, 1, 3, 4, 2)
 
-        return out_v, out_h
-
-
-class GatedPixelCNN(nn.Module):
-    def __init__(
-            self,
-            input_dim=256,
-            dim=64,
-            n_layers=15,
-            n_classes=10
-    ):
-        super().__init__()
-        self.dim = dim
-
-        # Create embedding layer to embed input
-        self.embedding = nn.Embedding(input_dim, dim)
-
-        # Building the PixelCNN layer by layer
-        self.layers = nn.ModuleList()
-
-        # Initial block with Mask-A convolution
-        # Rest with Mask-B convolutions
-        for i in range(n_layers):
-            mask_type = 'A' if i == 0 else 'B'
-            kernel = 7 if i == 0 else 3
-            residual = False if i == 0 else True
-
-            self.layers.append(
-                GatedMaskedConv2d(mask_type, dim, kernel, residual, n_classes)
-            )
-
-        # Add the output layer
-        self.output_conv = nn.Sequential(
-            nn.Conv2d(dim, 512, 1),
-            nn.ReLU(True),
-            nn.Conv2d(512, input_dim, 1)
-        )
-
-        self.apply(weights_init)
-
-    def forward(self, x, label):
-        shp = x.size() + (-1,)
-        x = self.embedding(x.view(-1)).view(shp)  # (B, H, W, C)
-        x = x.permute(0, 3, 1, 2)  # (B, C, W, H)
-
-        x_v, x_h = (x, x)
-        for i, layer in enumerate(self.layers):
-            x_v, x_h = layer(x_v, x_h, label)
-
-        return self.output_conv(x_h)
-
-    def generate(self, label, shape=(8, 8), batch_size=64):
-        param = next(self.parameters())
-        x = torch.zeros(
-            (batch_size, *shape),
-            dtype=torch.int64, device=param.device
-        )
-
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                logits = self.forward(x, label)
-                probs = F.softmax(logits[:, :, i, j], -1)
-                x.data[:, i, j].copy_(
-                    probs.multinomial(1).squeeze().data
-                )
         return x
 
 
-class PixelCNNModule(BaseGenerateModule):
-    def __init__(self, model, loss, metrics):
+
+class PixelCNNModule(BaseGenerate1Module):
+    def __init__(self, model, loss):
         super().__init__()
         self.model = model
         self.loss = loss
-        self.metrics = metrics
+
+    def on_before_batch_transfer(self, batch, dataloader_idx: int):
+        return {
+            "inputs": batch[0],
+            "targets": batch[1],
+        }
+
+    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
+        result = {}
+        for key, value in batch.items():
+            if isinstance(value, dict):
+                result[key] = {k: v.to(device) for k, v in value}
+            else:
+                result[key] = value.to(device)
+        return result
