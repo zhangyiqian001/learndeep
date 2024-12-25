@@ -3,7 +3,7 @@ import math
 import torch
 from torch import Tensor, nn
 
-from modules.base_module import BaseTranslateModelModule
+from modules.base_module import BaseTranslateModule
 
 
 class PositionalEncoding(nn.Module):
@@ -82,7 +82,7 @@ class TransformerModel(nn.Module):
         return self.ff(outs)
 
 
-class TransformerModule(BaseTranslateModelModule):
+class TransformerModule(BaseTranslateModule):
     def __init__(
             self,
             input_vocab_size,

@@ -5,7 +5,7 @@ from lightning.pytorch import LightningModule
 from torch import Tensor
 
 
-class BaseModelModule(LightningModule):
+class BaseClassificationModule(LightningModule):
 
     def __init__(self):
         super().__init__()
@@ -40,7 +40,7 @@ class BaseModelModule(LightningModule):
         pass
 
 
-class BaseTranslateModelModule(LightningModule):
+class BaseTranslateModule(LightningModule):
     def __init__(self):
         super().__init__()
 
@@ -110,7 +110,7 @@ class BaseExtractModule(LightningModule):
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
         output = self(inputs)
-        loss = self.model.loss_function(output)
+        loss = self.loss(output)
         loss = {f"train_{key}": value for key, value in loss.items()}
         self.log_dict(loss, prog_bar=True, sync_dist=True)
         return loss['train_loss']
@@ -125,6 +125,40 @@ class BaseExtractModule(LightningModule):
         self.loggers[0].experiment.add_image('example_images', grid, 0)
         self.log_dict(loss, prog_bar=True, sync_dist=True)
         return loss['val_loss']
+
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
+        output = self(inputs)
+        return output
+
+    def infer(self, x):
+        pass
+
+
+class BaseGenerateModule(LightningModule):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x) -> Tensor:
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs']
+        output = self(inputs)
+        loss = self.loss(output, target)
+        acc = self.metrics(output.argmax(1), target)
+        values = {"train_loss": loss, "train_acc": acc}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs)
+        loss = self.loss(output, target)
+        acc = self.metrics(output.argmax(1), target)
+        values = {"val_loss": loss, "val_acc": acc}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
 
     def test_step(self, batch: Any, batch_idx):
         inputs = batch['inputs']

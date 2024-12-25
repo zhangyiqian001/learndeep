@@ -1,7 +1,7 @@
 import torch
 from torch import nn, Tensor
 
-from modules.base_module import BaseTranslateModelModule
+from modules.base_module import BaseTranslateModule
 from modules.transformer_module import PositionalEncoding
 
 
@@ -50,7 +50,7 @@ class BertModel(nn.Module):
         return self.ff(outs)
 
 
-class BertModule(BaseTranslateModelModule):
+class BertModule(BaseTranslateModule):
     def __init__(
             self,
             input_vocab_size,

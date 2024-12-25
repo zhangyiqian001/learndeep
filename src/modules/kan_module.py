@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn.functional as F
 
-from modules.base_module import BaseModelModule
+from modules.base_module import BaseClassificationModule
 
 
 class KANLinear(torch.nn.Module):
@@ -288,7 +288,7 @@ class KAN(torch.nn.Module):
         )
 
 
-class KANModule(BaseModelModule):
+class KANModule(BaseClassificationModule):
     def __init__(
             self,
             layers_hidden,
@@ -317,16 +317,3 @@ class KANModule(BaseModelModule):
             grid_eps=grid_eps,
             grid_range=grid_range,
         )
-        self.processor_src = processor_src
-        self.processor_tgt = processor_tgt
-
-    def on_before_batch_transfer(self, batch, dataloader_idx: int):
-        if self.processor_src is not None and self.processor_tgt is not None:
-            input_ids = self.processor_src(batch['translation']['en'])
-            target_ids = self.processor_tgt(batch['translation']['fr'])
-            return {
-                "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
-                "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
-            }
-        else:
-            raise Exception("input and target must pass processor")

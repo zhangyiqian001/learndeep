@@ -179,6 +179,7 @@ class VAEModule(BaseExtractModule):
     def __init__(self, model):
         super().__init__()
         self.model = model
+        self.loss = model.loss_function
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         return {

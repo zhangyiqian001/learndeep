@@ -3,10 +3,10 @@ from typing import Any
 import torch
 from torch import nn
 
-from modules.base_module import BaseModelModule
+from modules.base_module import BaseClassificationModule
 
 
-class AlexNetModuleBase(BaseModelModule):
+class AlexNetModuleBase(BaseClassificationModule):
     def __init__(
             self,
             model,

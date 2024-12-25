@@ -7,6 +7,7 @@ from torch.nn import functional as F
 from modules.base_module import BaseExtractModule
 
 
+# (embedding): Embedding(512, 64)
 class VectorQuantizer(nn.Module):
     """
     Reference:
@@ -239,6 +240,7 @@ class VQVAEModule(BaseExtractModule):
     def __init__(self, model):
         super().__init__()
         self.model = model
+        self.loss = model.loss_function
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         return {
@@ -254,3 +256,7 @@ class VQVAEModule(BaseExtractModule):
             else:
                 result[key] = value.to(device)
         return result
+
+
+if __name__ == '__main__':
+    print(VQVAE(in_channels=3, ))
