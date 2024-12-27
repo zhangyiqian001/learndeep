@@ -67,6 +67,8 @@ class MaskBConvBlock(nn.Module):
     def forward(self, x):
         """Residual connection"""
         return self.net(x) + x
+
+
 class PixelCNN(nn.Module):
     def __init__(self, n_channel=3, h=128, discrete_channel=256):
         """PixelCNN Model"""
@@ -113,7 +115,6 @@ class PixelCNN(nn.Module):
         x = x.permute(0, 1, 3, 4, 2)
 
         return x
-
 
 
 class PixelCNNModule(BaseGenerate1Module):

@@ -168,6 +168,7 @@ class BaseGenerate2Module(LightningModule):
     def infer(self, x):
         pass
 
+
 class BaseGenerate1Module(LightningModule):
     def __init__(self):
         super().__init__()
