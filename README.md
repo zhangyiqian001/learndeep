@@ -4,10 +4,15 @@
 基于 PyTorch Lightning 框架
 
 经典模型复现:
+- GAN
 - Transformer
-- bert
-- vae
-- vqvae
+- Bert
+- PixelCNN
+- Gated PixelCNN
+- PixelCNN++
+- VAE
+- VQ-VAE
+- VQ-VAE2
 
 
 #### 训练脚本

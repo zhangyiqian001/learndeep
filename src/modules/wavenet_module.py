@@ -10,9 +10,9 @@ References :
 import torch
 import numpy as np
 
+
 class InputSizeError(Exception):
     def __init__(self, input_size, receptive_fields, output_size):
-
         message = 'Input size has to be larger than receptive_fields\n'
         message += 'Input size: {0}, Receptive fields size: {1}, Output size: {2}'.format(
             input_size, receptive_fields, output_size)
@@ -22,6 +22,7 @@ class InputSizeError(Exception):
 
 class DilatedCausalConv1d(torch.nn.Module):
     """Dilated Causal Convolution for WaveNet"""
+
     def __init__(self, channels, dilation=1):
         super(DilatedCausalConv1d, self).__init__()
 
@@ -44,6 +45,7 @@ class DilatedCausalConv1d(torch.nn.Module):
 
 class CausalConv1d(torch.nn.Module):
     """Causal Convolution for WaveNet"""
+
     def __init__(self, in_channels, out_channels):
         super(CausalConv1d, self).__init__()
 
