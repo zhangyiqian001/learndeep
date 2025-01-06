@@ -8,6 +8,7 @@ from torch.nn import functional as F
 from modules.base_module import BaseExtractModule
 import torchvision.utils as vutils
 
+
 class VAE(nn.Module):
 
     def __init__(
@@ -199,7 +200,8 @@ class VAEModule(BaseExtractModule):
 
 if __name__ == '__main__':
     model = VAE(in_channels=1, latent_dim=128)
-    module = VAEModule.load_from_checkpoint(r"D:\learndeep\src\logger\version_3\checkpoints\epoch=737-step=276750.ckpt", model=model)
+    module = VAEModule.load_from_checkpoint(r"D:\learndeep\src\logger\version_3\checkpoints\epoch=737-step=276750.ckpt",
+                                            model=model)
     module.eval()
     samples = module.model.sample(10, 0)
     vutils.save_image(samples.cpu().data,

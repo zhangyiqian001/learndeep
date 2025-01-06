@@ -1,4 +1,5 @@
 from .alexnet_module import AlexNetModule1x3, AlexNetModule3x3
+from .lstm_module import LSTMGenerateModule
 from .transformer_module import TransformerModule
 from .gan_module import GANModule
 from .kan_module import KANModule
@@ -8,6 +9,7 @@ from .pixelcnn_module import PixelCNNModule
 from .gatedpixelcnn_module import GatedPixelCNNModule
 
 __all__ = [
+    "LSTMGenerateModule",
     "AlexNetModule1x3",
     "AlexNetModule3x3",
     "TransformerModule",

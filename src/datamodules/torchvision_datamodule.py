@@ -103,6 +103,7 @@ class TorchVisionDataModule(BaseDataModule):
             cache_dir='data',
             batch_size=32,
             num_workers=4,
+            processor=transforms.Compose([transforms.ToTensor(),])
     ):
         super().__init__(
             batch_size,
@@ -111,16 +112,13 @@ class TorchVisionDataModule(BaseDataModule):
         self.name = name
         self.val_rate = val_rate
         self.cache_dir = cache_dir
+        self.processor = processor
 
     def prepare_data(self) -> None:
-        train_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                               # transforms.CenterCrop(148),
-                                               transforms.Resize(64),
-                                               transforms.ToTensor(),])
         self.train_iter = DATASETS[self.name](
-            self.cache_dir, train=True, download=True, transform=train_transforms, )
+            self.cache_dir, train=True, download=True, transform=self.processor, )
         self.test_iter = DATASETS[self.name](
-            self.cache_dir, train=False, download=True, transform=train_transforms, )
+            self.cache_dir, train=False, download=True, transform=self.processor, )
 
     def setup(self, stage: str) -> None:
         num_train = int(len(self.train_iter) * (1 - self.val_rate))

@@ -40,18 +40,26 @@ class HuggingfaceTranslateDataModule(HuggingfaceDataModule):
 
 if __name__ == '__main__':
     kwargs = {
-        "path": "../data/wmt14",
-        "name": "fr-en",
-        "split": None,
-        # "cache_dir": "..",
+        "path": "CSTR-Edinburgh/vctk",
         "batch_size": 16,
-        # "processor_src": {"file_name", None},
-        # "processor_tgt": {"file_name", None},
-        "num_workers": 16
+        "num_workers": 16,
+        "cache_dir": "../data"
     }
-    datamodule = HuggingfaceTranslateDataModule(kwargs)
-    datamodule.prepare_data()
-    en_list, fr_list = [], []
+    datamodule = HuggingfaceDataModule(kwargs)
+    datamodule.setup("fit")
+    # kwargs = {
+    #     "path": "../data/wmt14",
+    #     "name": "fr-en",
+    #     "split": None,
+    #     # "cache_dir": "..",
+    #     "batch_size": 16,
+    #     # "processor_src": {"file_name", None},
+    #     # "processor_tgt": {"file_name", None},
+    #     "num_workers": 16
+    # }
+    # datamodule = HuggingfaceTranslateDataModule(kwargs)
+    # datamodule.prepare_data()
+    # en_list, fr_list = [], []
     # for item in datamodule.train_set['translation'][:10]:
     #     en_list.append(item['en'])
     #     fr_list.append(item['fr'])

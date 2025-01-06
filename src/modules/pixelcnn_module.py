@@ -32,7 +32,7 @@ class MaskedConv2d(nn.Conv2d):
             mask[:, :, height // 2 + 1:] = 0
         else:
             mask[:, :, height // 2, width // 2 + 1:] = 0
-            mask[:, :, height // 2] = 0
+            mask[:, :, height // 2 + 1:] = 0
         self.register_buffer('mask', mask)
 
     def forward(self, x):
@@ -137,3 +137,7 @@ class PixelCNNModule(BaseGenerate1Module):
             else:
                 result[key] = value.to(device)
         return result
+
+
+if __name__ == '__main__':
+    print(PixelCNN())

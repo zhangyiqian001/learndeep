@@ -77,7 +77,7 @@ class GANModule(LightningModule):
         self.generator = Generator(latent_dim=self.latent_dim, img_shape=data_shape)
         self.discriminator = Discriminator(img_shape=data_shape)
 
-        self.validation_z = torch.randn(5, self.latent_dim)
+        self.validation_z = torch.randn(8, self.latent_dim)
 
         self.example_input_array = torch.zeros(2, self.latent_dim)
 
@@ -148,8 +148,8 @@ class GANModule(LightningModule):
         b1 = self.b1
         b2 = self.b2
 
-        opt_g = torch.optim.Adam(self.generator.parameters(), lr=1e-4, betas=(b1, b2))
-        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=1e-5, betas=(b1, b2))
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(b1, b2))
+        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
         return [opt_g, opt_d], []
 
 
