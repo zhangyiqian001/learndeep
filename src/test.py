@@ -1,12 +1,13 @@
 from typing import Union, Any, Tuple, Dict
 
+import datasets
 import matplotlib.pyplot as plt
 from PIL.Image import Image, fromarray
 from torchmetrics.text import BLEUScore
 from torchtext.datasets import DATASETS
 from torchvision.datasets import CIFAR10
 from torchvision import transforms
-
+import pyarrow as pa
 # class A:
 #     def __init__(self, args1, args2, a, b):
 #         print(args1)
@@ -34,19 +35,26 @@ from torchvision import transforms
 # def fun(a, b):
 #     pass
 if __name__ == '__main__':
-    train_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                           transforms.CenterCrop(148),
-                                           transforms.Resize(64),
-                                           transforms.ToTensor(),])
+    builder = datasets.load_dataset_builder("data/VCTK-Corpus-0.92/vctk.py")
+    builder.download_and_prepare()
+    data = builder.as_dataset(split='train')
+    print(next(data.iter(2)))
+    # print(data.info.features)
+    # data = next(data._generate_examples("data/VCTK-Corpus-0.92"))
+    # print(data)
+    # train_transforms = transforms.Compose([transforms.RandomHorizontalFlip(),
+    #                                        transforms.CenterCrop(148),
+    #                                        transforms.Resize(64),
+    #                                        transforms.ToTensor(),])
 
-    train_iter = CIFAR10("data", train=True, download=True, transform=train_transforms)
+    # train_iter = CIFAR10("data", train=True, download=True, transform=train_transforms)
     # a = train_transforms(fromarray(train_iter.data[0]))
-    a = train_iter.data[0]
-    print(a.shape)
+    # a = train_iter.data[0]
+    # print(a.shape)
     # print(train_iter.data[0])
     # plt.imshow(a.permute(1, 2, 0).detach().numpy())
-    plt.imshow(a)
-    plt.show()
+    # plt.imshow(a)
+    # plt.show()
     # data = DATASETS['AG_NEWS']("data", split='train')
     # data = DATASETS['SQuAD2']("data", split='train')
     # print(data)

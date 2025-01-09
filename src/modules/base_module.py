@@ -235,3 +235,35 @@ class BaseRNNGenerateModule(LightningModule):
 
     def infer(self, x):
         pass
+
+
+class BaseSegmentationModule(LightningModule):
+    def __init__(self):
+        pass
+
+    def forward(self, x) -> Tensor:
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output, _ = self(inputs)
+        loss = self.loss(output, inputs)
+        values = {"train_loss": loss}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        output, _ = self(inputs)
+        loss = self.loss(output, inputs)
+        values = {"val_loss": loss}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
+        output = self(inputs)
+        return output
+
+    def infer(self, x):
+        pass

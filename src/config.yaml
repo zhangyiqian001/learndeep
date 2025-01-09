@@ -90,32 +90,33 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: modules.GANModule
+  class_path: modules.LSTMGenerateModule
   init_args:
-    channels: 3
-    width: 64
-    height: 64
+    model:
+      class_path: modules.lstm_module.LSTMGenerate
+    loss:
+      class_path: torch.nn.CrossEntropyLoss
 data:
   class_path: datamodules.TorchVisionDataModule
   init_args:
-    name: CIFAR10
+    name: MNIST
     val_rate: 0.2
     batch_size: 128
     num_workers: 4
-#optimizer:
-#  class_path: torch.optim.Adam
-#  init_args:
-#    lr: 1e-5
-#    betas:
-#      - 0.9
-#      - 0.999
-#    eps: 1.0e-08
-#    weight_decay: 0
-#    amsgrad: false
-#    foreach: null
-#    maximize: false
-#    capturable: false
-#    differentiable: false
-#    fused: null
+optimizer:
+  class_path: torch.optim.Adam
+  init_args:
+    lr: 1e-5
+    betas:
+      - 0.9
+      - 0.999
+    eps: 1.0e-08
+    weight_decay: 0
+    amsgrad: false
+    foreach: null
+    maximize: false
+    capturable: false
+    differentiable: false
+    fused: null
 lr_scheduler: null
 ckpt_path: null
