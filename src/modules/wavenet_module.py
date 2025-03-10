@@ -262,3 +262,7 @@ class WaveNet(torch.nn.Module):
         output = self.densnet(output)
 
         return output.transpose(1, 2).contiguous()
+
+if __name__ == '__main__':
+    data = np.load(r"D:\work\pytorch-wavenet\train_samples\bach_chaconne\dataset.npz", mmap_mode='r')
+    print(data)

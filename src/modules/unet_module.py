@@ -112,6 +112,7 @@ class UNet(nn.Module):
         logits = self.outc(x)
         return logits
 
+
 class UNetModule(BaseSegmentationModule):
     def __init__(self, model, loss):
         super().__init__()
@@ -135,3 +136,7 @@ class UNetModule(BaseSegmentationModule):
             else:
                 result[key] = value.to(device)
         return result
+
+
+if __name__ == '__main__':
+    print(UNet(3, 10))

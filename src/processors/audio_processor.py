@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 
+
 # FPS = 30
 # HOP_LENGTH = 512
 # SR = FPS * HOP_LENGTH
@@ -30,7 +31,6 @@ class ShortAudioMelProcessor:
         peak_onehot = np.zeros_like(envelope, dtype=np.float32)
         peak_onehot[peak_idxs] = 1.0  # (seq_len,)
 
-
         start_bpm = librosa.beat.tempo(y=librosa.load(fpath)[0])[0]
 
         tempo, beat_idxs = librosa.beat.beat_track(
@@ -53,8 +53,9 @@ class ShortAudioMelProcessor:
         # audio_feature = audio_feature[:5 * self.fps]
         # assert (audio_feature.shape[0] - 5 * self.fps) == 0, f"expected output to be ~5s, but was {audio_feature.shape[0] / self.fps}"
 
-        #np.save(save_path, audio_feature)
+        # np.save(save_path, audio_feature)
         return audio_feature
+
 
 class LongAudioMelProcessor:
     def __init__(self):
@@ -62,4 +63,5 @@ class LongAudioMelProcessor:
 
 
 if __name__ == '__main__':
-    ShortAudioMelProcessor().extract("F:\learndeep\src\data\VCTK-Corpus-0.92\wav48_silence_trimmed\p225\p225_001_mic1.flac")
+    ShortAudioMelProcessor().extract(
+        "F:\learndeep\src\data\VCTK-Corpus-0.92\wav48_silence_trimmed\p225\p225_001_mic1.flac")
