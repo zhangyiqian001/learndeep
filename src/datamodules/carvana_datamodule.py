@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 from datamodules.base_datamodule import BaseDataModule
 
+
 # 数据集地址：https://www.kaggle.com/competitions/carvana-image-masking-challenge/overview
 def load_image(filename):
     ext = splitext(filename)[1]
@@ -132,9 +133,8 @@ class CarvanaDataModule(BaseDataModule):
         pass
 
     def setup(self, stage: str) -> None:
-        self.train_set = CarvanaDataset(dir_img, dir_mask, img_scale)
+        self.train_set = CarvanaDataset(self.kwargs['dir_img'], self.kwargs['dir_mask'], self.kwargs['img_scale'])
         self.train_set, self.val_set = random_split(self.train_set, [0.8, 0.2])
-        print(self.train_set[0].shape)
 
 
 if __name__ == '__main__':

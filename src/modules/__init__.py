@@ -7,6 +7,7 @@ from .vae_module import VAEModule
 from .vqvae_module import VQVAEModule
 from .pixelcnn_module import PixelCNNModule
 from .gatedpixelcnn_module import GatedPixelCNNModule
+from .unet_module import UNetModule
 
 __all__ = [
     "LSTMGenerateModule",
@@ -18,5 +19,6 @@ __all__ = [
     "VQVAEModule",
     "PixelCNNModule",
     "GatedPixelCNNModule",
+    "UNetModule",
 ]
 

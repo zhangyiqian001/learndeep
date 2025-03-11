@@ -80,9 +80,9 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 
-class UNet(nn.Module):
+class UNetModel(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=False):
-        super(UNet, self).__init__()
+        super().__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
@@ -120,12 +120,9 @@ class UNetModule(BaseSegmentationModule):
         self.loss = loss
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
-        batch_size, channels, height, width = batch[0].size()
-        inputs = batch[0].permute(0, 2, 3, 1)  # 形状变为 (batch_size, sequence_length, input_size)
-        inputs = inputs.view(batch_size, -1, channels)
         return {
-            "inputs": inputs,
-            "targets": batch[1],
+            "inputs": batch['image'],
+            "targets": batch['mask'],
         }
 
     def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
@@ -139,4 +136,4 @@ class UNetModule(BaseSegmentationModule):
 
 
 if __name__ == '__main__':
-    print(UNet(3, 10))
+    print(UNetModel(3, 10).half())
