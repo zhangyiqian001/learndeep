@@ -1,3 +1,4 @@
+import torchvision
 from torch.utils.data.dataset import random_split
 from torchvision import transforms
 from torchvision.datasets import *
@@ -98,31 +99,25 @@ DATASETS = {
 class TorchVisionDataModule(BaseDataModule):
     def __init__(
             self,
-            name,
-            val_rate=0.2,
-            cache_dir='data',
-            batch_size=32,
-            num_workers=4,
-            processor=transforms.Compose([transforms.ToTensor(), ])
+            kwargs,
+            processor
     ):
         super().__init__(
-            batch_size,
-            num_workers
+            kwargs.pop('batch_size'),
+            kwargs.pop('num_workers')
         )
-        self.name = name
-        self.val_rate = val_rate
-        self.cache_dir = cache_dir
+        self.kwargs = kwargs
         self.processor = processor
 
     def prepare_data(self) -> None:
-        self.train_iter = DATASETS[self.name](
-            self.cache_dir, train=True, download=True, transform=self.processor, )
-        self.test_iter = DATASETS[self.name](
-            self.cache_dir, train=False, download=True, transform=self.processor, )
+        self.train_iter = DATASETS[self.kwargs['name']](
+            self.kwargs['cache_dir'], train=True, download=True, transform=self.processor, )
+        self.test_iter = DATASETS[self.kwargs['name']](
+            self.kwargs['cache_dir'], train=False, download=True, transform=self.processor, )
 
     def setup(self, stage: str) -> None:
-        num_train = int(len(self.train_iter) * (1 - self.val_rate))
-        num_val = int(len(self.train_iter) * self.val_rate)
+        num_train = int(len(self.train_iter) * (1 - self.kwargs['val_rate']))
+        num_val = int(len(self.train_iter) * self.kwargs['val_rate'])
         split_train_, split_valid_ = random_split(self.train_iter, [num_train, num_val])
         self.train_set = split_train_
         self.val_set = split_valid_

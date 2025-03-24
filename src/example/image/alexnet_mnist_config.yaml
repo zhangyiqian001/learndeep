@@ -92,8 +92,11 @@ trainer:
 model:
   class_path: modules.AlexNetModule1x3
   init_args:
-    num_classes: &num_classes 10
-    dropout: 0.2
+    model:
+      class_path: torchvision.models.AlexNet
+      init_args:
+        num_classes: &num_classes 10
+        dropout: 0.2
     loss:
       class_path: torch.nn.CrossEntropyLoss
     metrics:
@@ -104,10 +107,17 @@ model:
 data:
   class_path: datamodules.TorchVisionDataModule
   init_args:
-    name: MNIST
-    val_rate: 0.2
-    batch_size: 32
-    num_workers: 4
+    kwargs:
+      cache_dir: data
+      name: MNIST
+      val_rate: 0.2
+      batch_size: 64
+      num_workers: 4
+    processor:
+      class_path: torchvision.transforms.Compose
+      init_args:
+        transforms:
+          - class_path: torchvision.transforms.ToTensor
 optimizer:
   class_path: torch.optim.Adam
   init_args:

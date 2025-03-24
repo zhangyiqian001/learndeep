@@ -99,10 +99,17 @@ model:
 data:
   class_path: datamodules.TorchVisionDataModule
   init_args:
-    name: CIFAR10
-    val_rate: 0.2
-    batch_size: 128
-    num_workers: 4
+    kwargs:
+      cache_dir: data
+      name: CIFAR10
+      val_rate: 0.2
+      batch_size: 128
+      num_workers: 4
+    processor:
+      class_path: torchvision.transforms.Compose
+      init_args:
+        transforms:
+          - class_path: torchvision.transforms.ToTensor
 optimizer:
   class_path: torch.optim.Adam
   init_args:
