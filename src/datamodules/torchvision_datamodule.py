@@ -103,7 +103,7 @@ class TorchVisionDataModule(BaseDataModule):
             cache_dir='data',
             batch_size=32,
             num_workers=4,
-            processor=transforms.Compose([transforms.ToTensor(),])
+            processor=transforms.Compose([transforms.ToTensor(), ])
     ):
         super().__init__(
             batch_size,
@@ -151,3 +151,8 @@ class CelebADataModule(BaseDataModule):
             self.cache_dir, split="valid", download=True, transform=transforms.ToTensor(), )
         self.test_set = CelebA(
             self.cache_dir, split="test", download=True, transform=transforms.ToTensor(), )
+
+
+if __name__ == '__main__':
+    data = ImageFolder("../data/imagenet200/")
+    print(data.classes)

@@ -28,6 +28,9 @@ class BaseClassificationModule(LightningModule):
         loss = self.loss(output, target)
         acc = self.metrics(output.argmax(1), target)
         values = {"val_loss": loss, "val_acc": acc}
+        sample_imgs = inputs[:5]
+        grid = torchvision.utils.make_grid(sample_imgs)
+        self.loggers[0].experiment.add_image('example_images', grid, 0)
         self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 

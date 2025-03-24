@@ -1,11 +1,12 @@
 import librosa
 import numpy as np
-from torch.utils.data import Dataset, random_split
+from datasets import load_dataset_builder
+from torch.utils.data import Dataset
 
 from datamodules.base_datamodule import BaseDataModule
-from datasets import load_dataset_builder
 
 
+# 数据集地址：https://datashare.is.ed.ac.uk/bitstream/handle/10283/3443/VCTK-Corpus-0.92.zip
 def one_hot_encode(data, channels=256):
     one_hot = np.zeros((data.size, channels), dtype=float)
     one_hot[np.arange(data.size), data.ravel()] = 1
