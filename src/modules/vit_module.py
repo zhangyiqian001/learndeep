@@ -113,6 +113,8 @@ class ViTModel(nn.Module):
         assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
         self.to_patch_embedding = nn.Sequential(
+            # b, patch, pixel
+            # torch.Size([64, 49, 3072])
             Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1=patch_height, p2=patch_width),
             nn.LayerNorm(patch_dim),
             nn.Linear(patch_dim, dim),
@@ -131,10 +133,13 @@ class ViTModel(nn.Module):
         self.mlp_head = nn.Linear(dim, num_classes)
 
     def forward(self, img):
+        # torch.Size([64, 3, 224, 224])
         x = self.to_patch_embedding(img)
+        # torch.Size([64, 49, 128])
         b, n, _ = x.shape
 
         cls_tokens = repeat(self.cls_token, '1 1 d -> b 1 d', b=b)
+        # torch.Size([64, 50, 128])
         x = torch.cat((cls_tokens, x), dim=1)
         x += self.pos_embedding[:, :(n + 1)]
         x = self.dropout(x)

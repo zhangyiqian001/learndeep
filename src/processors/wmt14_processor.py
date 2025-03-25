@@ -3,7 +3,7 @@ import os
 import torch
 from tokenizers.trainers import BpeTrainer
 
-from datamodules.huggingface_datamodule import HuggingfaceTranslateDataModule
+from datamodules.huggingface_datamodule import HuggingfaceDataModule
 from processors.base_processor import BaseTextProcessor
 
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         "num_workers": 16
     }
 
-    datamodule = HuggingfaceTranslateDataModule(kwargs)
+    datamodule = HuggingfaceDataModule(kwargs)
     datamodule.prepare_data()
     # language = 'fr'
     # WMT14Processor().train(datamodule.train_set['translation'], f"wmt14_{language}.json", language)

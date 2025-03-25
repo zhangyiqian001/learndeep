@@ -9,6 +9,7 @@ from .pixelcnn_module import PixelCNNModule
 from .gatedpixelcnn_module import GatedPixelCNNModule
 from .unet_module import UNetModule
 from .vit_module import ViTModule
+from .distillvit_module import DistillableViT, DistillWrapper
 
 __all__ = [
     "LSTMGenerateModule",
@@ -22,5 +23,7 @@ __all__ = [
     "GatedPixelCNNModule",
     "UNetModule",
     "ViTModule",
+    "DistillableViT",
+    "DistillWrapper",
 ]
 

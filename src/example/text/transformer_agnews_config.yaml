@@ -90,16 +90,19 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: modules.TransformerModule
+  class_path: modules.transformer_module.TransformerModule
   init_args:
-    input_vocab_size: 32000
-    embed_size: 512
-    dropout: 0.1
-    num_heads: 8
-    num_encoder_layers: 6
-    num_decoder_layers: 6
-    dim_feedforward: 2048
-    padding_idx: &padding_idx 3
+    model:
+      class_path: modules.transformer_module.TransformerModel
+      init_args:
+        input_vocab_size: 32000
+        embed_size: 512
+        dropout: 0.1
+        num_heads: 8
+        num_encoder_layers: 6
+        num_decoder_layers: 6
+        dim_feedforward: 2048
+        padding_idx: &padding_idx 3
     loss:
       class_path: torch.nn.CrossEntropyLoss
       init_args:
@@ -112,10 +115,6 @@ model:
       class_path: processors.WMT14Processor
       init_args:
         file_name: ./processors/cache/wmt14_en.json
-    processor_tgt:
-      class_path: processors.WMT14Processor
-      init_args:
-        file_name: ./processors/cache/wmt14_fr.json
 data:
   class_path: datamodules.TorchTextDataModule
   init_args:

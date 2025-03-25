@@ -21,23 +21,6 @@ class HuggingfaceDataModule(BaseDataModule):
         self.data = load_dataset(**self.kwargs)
         self.train_set, self.val_set, self.test_set = self.data['train'], self.data['validation'], self.data['test']
 
-
-class HuggingfaceTranslateDataModule(HuggingfaceDataModule):
-    def __init__(self, kwargs):
-        super().__init__(kwargs)
-
-    # def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
-    #     if self.processor_src is not None and self.processor_tgt is not None:
-    #         input_ids = self.processor_src(batch['translation']['en'])
-    #         target_ids = self.processor_tgt(batch['translation']['fr'])
-    #         return {
-    #             "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
-    #             "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))
-    #         }
-    #     else:
-    #         raise Exception("input and target must pass processor")
-
-
 if __name__ == '__main__':
     kwargs = {
         "path": "CSTR-Edinburgh/vctk",

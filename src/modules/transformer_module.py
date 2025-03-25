@@ -85,32 +85,16 @@ class TransformerModel(nn.Module):
 class TransformerModule(BaseTranslateModule):
     def __init__(
             self,
-            input_vocab_size,
-            embed_size,
-            dropout=0.1,
-            num_heads=8,
-            num_encoder_layers=6,
-            num_decoder_layers=6,
-            dim_feedforward=2048,
-            padding_idx=0,
-            processor_src=None,
-            processor_tgt=None,
-            loss=None,
-            metrics=None
+            model,
+            loss,
+            metrics,
+            processor_src,
+            processor_tgt,
     ):
         super().__init__()
         self.loss = loss
         self.metrics = metrics
-        self.model = TransformerModel(
-            input_vocab_size,
-            embed_size,
-            dropout,
-            num_heads,
-            num_encoder_layers,
-            num_decoder_layers,
-            dim_feedforward,
-            padding_idx
-        )
+        self.model = model
         self.processor_src = processor_src
         self.processor_tgt = processor_tgt
 

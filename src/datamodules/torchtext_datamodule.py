@@ -25,3 +25,4 @@ class TorchTextDataModule(BaseDataModule):
         self.train_set = DATASETS[self.name](self.cache_dir, split='train')
         self.test_set = DATASETS[self.name](self.cache_dir, split='test')
         # self.val_set = DATASETS[self.name](self.cache_dir, split='valid')
+

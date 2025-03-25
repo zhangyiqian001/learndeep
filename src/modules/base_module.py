@@ -4,14 +4,15 @@ import torchvision
 from lightning.pytorch import LightningModule
 from torch import Tensor
 
-
-class BaseClassificationModule(LightningModule):
+class BaseModule(LightningModule):
 
     def __init__(self):
         super().__init__()
 
-    def forward(self, x) -> Tensor:
-        return self.model(x)
+    def forward(self, *args) -> Tensor:
+        return self.model(*args)
+
+class BaseClassificationModule(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -43,15 +44,11 @@ class BaseClassificationModule(LightningModule):
         pass
 
 
-class BaseTranslateModule(LightningModule):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, **kwargs) -> Tensor:
-        return self.model(**kwargs)
+class BaseTranslateModule(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
-        output = self(**batch)
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs, target)
         loss = self.loss(output.view(-1, output.shape[-1]), batch['targets'].view(-1))
         target_text = self.processor_tgt(batch['targets'])
         infer_text = self.processor_tgt(output.argmax(2))
@@ -63,7 +60,8 @@ class BaseTranslateModule(LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
-        output = self(**batch)
+        inputs, target = batch['inputs'], batch['targets']
+        output = self(inputs, target)
         loss = self.loss(output.view(-1, output.shape[-1]), batch['targets'].view(-1))
         target_text = self.processor_tgt(batch['targets'])
         infer_text = self.processor_tgt(output.argmax(2))
