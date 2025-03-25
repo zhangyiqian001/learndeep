@@ -12,12 +12,17 @@ class BaseModule(LightningModule):
     def forward(self, *args) -> Tensor:
         return self.model(*args)
 
+
 class BaseClassificationModule(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
-        output = self(inputs)
-        loss = self.loss(output, target)
+        if self.loss is None:
+            output = self(inputs, target)
+            loss = output
+        else:
+            output = self(inputs)
+            loss = self.loss(output, target)
         acc = self.metrics(output.argmax(1), target)
         values = {"train_loss": loss, "train_acc": acc}
         self.log_dict(values, prog_bar=True, sync_dist=True)
@@ -25,12 +30,20 @@ class BaseClassificationModule(BaseModule):
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
-        output = self(inputs)
-        loss = self.loss(output, target)
+        if self.loss is None:
+            output = self(inputs, target)
+            loss = output
+        else:
+            output = self(inputs)
+            loss = self.loss(output, target)
         acc = self.metrics(output.argmax(1), target)
         values = {"val_loss": loss, "val_acc": acc}
-        sample_imgs = inputs[:5]
-        grid = torchvision.utils.make_grid(sample_imgs)
+        try:
+            sample_imgs = inputs[:5]
+            grid = torchvision.utils.make_grid(sample_imgs)
+        except Exception as e:
+            print(e)
+            print("dataset is not images")
         self.loggers[0].experiment.add_image('example_images', grid, 0)
         self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
@@ -42,6 +55,43 @@ class BaseClassificationModule(BaseModule):
 
     def infer(self, x):
         pass
+
+class BaseDistillModule(BaseModule):
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        if self.loss is None:
+            output = self(inputs, target)
+            loss = output
+        else:
+            output = self(inputs)
+            loss = self.loss(output, target)
+        values = {"train_loss": loss, }
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        inputs, target = batch['inputs'], batch['targets']
+        if self.loss is None:
+            output = self(inputs, target)
+            loss = output
+        else:
+            output = self(inputs)
+            loss = self.loss(output, target)
+        values = {"val_loss": loss,}
+        try:
+            sample_imgs = inputs[:5]
+            grid = torchvision.utils.make_grid(sample_imgs)
+        except Exception as e:
+            print(e)
+            print("dataset is not images")
+        self.loggers[0].experiment.add_image('example_images', grid, 0)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def test_step(self, batch: Any, batch_idx):
+        inputs = batch['inputs']
+        output = self(inputs)
+        return output
 
 
 class BaseTranslateModule(BaseModule):

@@ -1,11 +1,12 @@
 import torch
+import torch.nn.functional as F
+from einops import repeat
 from torch import nn
 from torch.nn import Module
-import torch.nn.functional as F
 
-from modules.base_module import BaseClassificationModule
+from modules.base_module import BaseDistillModule
 from .vit_module import ViTModel
-from einops import rearrange, repeat
+
 
 # helpers
 
@@ -45,6 +46,7 @@ class DistillMixin:
             return out, distill_tokens
 
         return out
+
 
 class DistillableViT(DistillMixin, ViTModel):
     def __init__(self, *args, **kwargs):
@@ -144,6 +146,9 @@ class DistillWrapper(Module):
 
         loss = F.cross_entropy(student_logits, labels)
 
+        print(student_logits.shape)
+        print(distill_logits.shape)
+        print(teacher_logits.shape)
         if not self.hard:
             distill_loss = F.kl_div(
                 F.log_softmax(distill_logits / T, dim = -1),
@@ -158,7 +163,7 @@ class DistillWrapper(Module):
         return loss * (1 - alpha) + distill_loss * alpha
 
 
-class DistillWrapperModule(BaseClassificationModule):
+class DistillWrapperModule(BaseDistillModule):
     def __init__(self, model, loss, metrics):
         super().__init__()
         self.model = model
