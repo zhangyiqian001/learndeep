@@ -35,6 +35,7 @@
     ```shell
     conda create -n learndeep python=3.10
     conda activate learndeep
+   git clone --recursive https://github.com/zhangyiqian001/learndeep.git
     ```
 2. 安装依赖
     
@@ -126,4 +127,8 @@ python .\main.py fit -c .\config.yaml
 #### 可视化脚本
 ```sh
 tensorboard --logdir .\\logger\\
+```
+#### 拉取文档
+```shell
+git submodule update --init --recursive
 ```

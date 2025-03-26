@@ -1,0 +1,3 @@
+[submodule "docs"]
+	path = docs
+	url = https://kkgithub.com/zhangyiqian001/learndeep-docs.git
