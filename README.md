@@ -30,7 +30,21 @@
 - [carvana_datamodule.py](src%2Fdatamodules%2Fcarvana_datamodule.py)
 - [Dogs vs. Cats DataSet](https://www.kaggle.com/competitions/dogs-vs-cats-redux-kernels-edition/data)
 
-
+#### 安装
+1. 创建 conda environment
+    ```shell
+    conda create -n learndeep python=3.10
+    conda activate learndeep
+    ```
+2. 安装依赖
+    
+   [了解更多poetry](https://blog.csdn.net/weixin_43457608/article/details/142361076?spm=1001.2014.3001.5501)
+    
+   ```shell
+   pip install poetry # 安装poetry
+   poetry install # 第一次安装依赖
+   poetry update # 更新依赖
+    ```
 #### 训练脚本
 ```sh
 python .\main.py fit -c .\config.yaml
