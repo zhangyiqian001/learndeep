@@ -4,25 +4,29 @@ version = "0.1.0"
 description = ""
 authors = ["'zhangyiqian' <'496115313@qq.com'>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.10"
-lightning = "^2.3.0"
-torchtext = "0.15.2" # gpu   不支持win
-torch = { version = "2.0.1", source="torch" }
-torchaudio = { version = "2.0.2", source="torch" }
-torchvision = { version = "0.15.2", source="torch" }
-charset-normalizer = "3.1.0"
-numpy = "1.26.4"
-protobuf = "3.20.1"
-litdata = "^0.2.30"
-jsonargparse = {extras = ["signatures"], version = "^4.34.0"}
-tokenizers = "^0.20.3"
+python = "^3.12.9"
+lightning = {extras = ["pytorch-extra"], version = "^2.5.1"}
+#torchtext = "0.18.0" # gpu   不支持win
+torch = { version = "2.5.1", source="torch" }
+torchaudio = { version = "2.5.1", source="torch" }
+torchvision = { version = "0.20.1", source="torch" }
+jsonargparse = {extras = ["signatures"], version = "^4.38.0"}
 transformers = "^4.46.3"
 datasets = "^3.1.0"
 tensorboardx = "^2.6.2.2"
-rich = "^13.9.4"
+rich = "^12.3.0"
 einops = "^0.8.1"
+gym = "^0.26.2"
+matplotlib = "^3.10.1"
+ruyaml = "^0.91.0"
+scikit-learn = "^1.6.1"
+llvmlite = "^0.44.0"
+librosa = "^0.11.0"
+jupyter = "^1.1.1"
+seaborn = "^0.13.2"
 
 [[tool.poetry.source]]
 name = "orgin"
@@ -31,7 +35,7 @@ priority = "primary"
 
 [[tool.poetry.source]]
 name = "torch"
-url = "https://download.pytorch.org/whl/cu118"
+url = "https://download.pytorch.org/whl/cu124"
 priority = "supplemental"
 
 [build-system]

@@ -146,9 +146,6 @@ class DistillWrapper(Module):
 
         loss = F.cross_entropy(student_logits, labels)
 
-        print(student_logits.shape)
-        print(distill_logits.shape)
-        print(teacher_logits.shape)
         if not self.hard:
             distill_loss = F.kl_div(
                 F.log_softmax(distill_logits / T, dim = -1),

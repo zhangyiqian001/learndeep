@@ -22,22 +22,7 @@ trainer:
         flush_secs: 120
         filename_suffix: ''
   callbacks:
-    - class_path: lightning.pytorch.callbacks.RichProgressBar
-      init_args:
-        refresh_rate: 1
-        leave: false
-        theme:
-          description: green_yellow
-          progress_bar: green1
-          progress_bar_finished: green1
-          progress_bar_pulse: #6206E0
-          batch_progress: green_yellow
-          time: green_yellow
-          processing_speed: grey82
-          metrics: grey82
-          metrics_text_delimiter: "\n"
-          metrics_format: .3f
-        console_kwargs: null
+    - utils.callbacks.RichProgressBar1
     - class_path: lightning.pytorch.callbacks.RichModelSummary
       init_args:
         max_depth: 1

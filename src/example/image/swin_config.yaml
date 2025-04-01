@@ -79,7 +79,7 @@ model:
   init_args:
     model:
       class_path: torchvision.models.SwinTransformer
-      init_args:
+      init_kwargs:
         patch_size: [4, 4]
         embed_dim: 96
         depths: [2, 2, 6, 2]
@@ -96,7 +96,7 @@ model:
       class_path: torchmetrics.Accuracy
       init_args:
         task: multiclass
-        num_classes: 2
+        num_classes: *num_classes
 data:
   class_path: datamodules.CarvanaDataModule
   init_args:

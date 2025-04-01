@@ -1,9 +1,4 @@
-from pathlib import Path
-
-import datasets
-
 from datamodules.base_datamodule import BaseDataModule
-from datasets import inspect_dataset, load_dataset_builder
 
 
 class ModelscopeDataModule(BaseDataModule):

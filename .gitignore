@@ -3,3 +3,4 @@ data
 logger
 cache
 poetry.lock
+test*

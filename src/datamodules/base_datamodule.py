@@ -1,5 +1,3 @@
-from typing import Any
-
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader
 

@@ -1,10 +1,33 @@
 import logging
 
+from lightning.pytorch.callbacks import RichProgressBar
+from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBarTheme
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 import psutil
 
 logger = logging.getLogger()
+
+
+class RichProgressBar1(RichProgressBar):
+    def __init__(self):
+        super().__init__(
+            refresh_rate=1,
+            leave=False,
+            theme=RichProgressBarTheme(
+                description="green_yellow",
+                progress_bar="green1",
+                progress_bar_finished="green1",
+                progress_bar_pulse="#6206E0",
+                batch_progress="green_yellow",
+                time="green_yellow",
+                processing_speed="grey82",
+                metrics="grey82",
+                metrics_text_delimiter="\n",
+                metrics_format=".3f",
+            ),
+            console_kwargs=None,
+        )
 
 
 class ProgressLogger(Callback):
