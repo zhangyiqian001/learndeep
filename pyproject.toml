@@ -8,18 +8,18 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12.9"
-lightning = {extras = ["pytorch-extra"], version = "^2.5.1"}
+lightning = {extras = ["pytorch-extra"], version = "2.5.1"}
 #torchtext = "0.18.0" # gpu   不支持win
 torch = { version = "2.5.1", source="torch" }
 torchaudio = { version = "2.5.1", source="torch" }
 torchvision = { version = "0.20.1", source="torch" }
-jsonargparse = {extras = ["signatures"], version = "^4.38.0"}
+jsonargparse = {extras = ["signatures"], version = "4.35.0"}
 transformers = "^4.46.3"
 datasets = "^3.1.0"
 tensorboardx = "^2.6.2.2"
 rich = "^12.3.0"
 einops = "^0.8.1"
-gym = "^0.26.2"
+gym = "0.25.2"
 matplotlib = "^3.10.1"
 ruyaml = "^0.91.0"
 scikit-learn = "^1.6.1"

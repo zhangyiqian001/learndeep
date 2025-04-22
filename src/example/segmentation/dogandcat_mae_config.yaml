@@ -90,14 +90,39 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  modules.swintransformer_module.swin_t
+  class_path: modules.mae_module.MAEModule
+  init_args:
+    model:
+      class_path: modules.mae_module.MAEModel
+      init_args:
+        encoder:
+          class_path: modules.vit_module.ViTModel
+          init_args:
+            image_size: 256
+            patch_size: 32
+            num_classes: &num_classes 2
+            dim: 1024
+            depth: 6
+            heads: 8
+            mlp_dim: 2048
+        decoder_dim: 512
+        masking_ratio: 0.75
+        decoder_depth: 6
+        decoder_heads: 8
+        decoder_dim_head: 64
+    loss:
+    metrics:
+      class_path: torchmetrics.Accuracy
+      init_args:
+        task: multiclass
+        num_classes: *num_classes
 data:
   class_path: datamodules.CatsAndDogsDataModule
   init_args:
     kwargs:
       root: data/dogs-vs-cats/
       batch_size: 64
-      num_workers: 4
+      num_workers: 16
 optimizer:
   class_path: torch.optim.Adam
   init_args:

@@ -1,12 +1,14 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
+import torchvision
 from einops import repeat
+from torch import nn, Tensor
 
-from .base_module import BaseClassificationModule
+from .base_module import BaseModule
 from .vit_module import Transformer
 
-class MAE(nn.Module):
+
+class MAEModel(nn.Module):
     def __init__(
             self,
             *,
@@ -105,17 +107,15 @@ class MAE(nn.Module):
         return recon_loss
 
 
-class MAEModule(BaseClassificationModule):
+class MAEModule(BaseModule):
     def __init__(self, model, loss, metrics):
         super().__init__()
         self.model = model
         self.loss = loss
-        self.metrics = metrics
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         return {
-            "inputs": batch[0],
-            "targets": batch[1],
+            "img": batch[0],
         }
 
     def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
@@ -126,3 +126,23 @@ class MAEModule(BaseClassificationModule):
             else:
                 result[key] = value.to(device)
         return result
+
+    def training_step(self, batch, batch_idx: int) -> Tensor:
+        loss = self(batch)
+        values = {"train_loss": loss}
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx: int) -> Tensor:
+        loss = self(batch)
+        values = {"val_loss": loss}
+        sample_imgs = batch['img'][:5]
+        grid = torchvision.utils.make_grid(sample_imgs)
+        self.loggers[0].experiment.add_image('example_images', grid, 0)
+        self.log_dict(values, prog_bar=True, sync_dist=True)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        inputs = batch['img']
+        output = self(inputs)
+        return output

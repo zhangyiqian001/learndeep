@@ -61,7 +61,7 @@ class CatsAndDogsDataModule(BaseDataModule):
         pass
 ```
 
-### 自定义数据集
+### 自定义模型
 命名规范：模型名_module.py
 
 示例：[vit_module.py](src%2Fmodules%2Fvit_module.py)

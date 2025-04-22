@@ -3,7 +3,6 @@ import torchmetrics
 
 from modules.base_module import BaseClassificationModule
 from torchvision.models import SwinTransformer
-from lightning.pytorch.profilers import PyTorchProfiler
 
 class SwinTransformerModule(BaseClassificationModule):
 
@@ -35,7 +34,8 @@ swin_t = SwinTransformerModule(
         96,
         [2, 2, 6, 2],
         [3, 6, 12, 24],
-        [7, 7]
+        [7, 7],
+        num_classes=2,
     ),
     torch.nn.CrossEntropyLoss(),
     torchmetrics.Accuracy("multiclass", num_classes=2)
