@@ -128,13 +128,13 @@ class MAEModule(BaseModule):
         return result
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
-        loss = self(batch)
+        loss = self(batch['img'])
         values = {"train_loss": loss}
         self.log_dict(values, prog_bar=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx: int) -> Tensor:
-        loss = self(batch)
+        loss = self(batch['img'])
         values = {"val_loss": loss}
         sample_imgs = batch['img'][:5]
         grid = torchvision.utils.make_grid(sample_imgs)
