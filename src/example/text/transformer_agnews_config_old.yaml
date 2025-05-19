@@ -114,18 +114,15 @@ model:
     processor_src:
       class_path: processors.WMT14Processor
       init_args:
-        file_name: processors/cache/wmt14_en.json
-    processor_tgt:
-      class_path: processors.WMT14Processor
-      init_args:
-        file_name: processors/cache/wmt14_fr.json
+        file_name: ./processors/cache/wmt14_en.json
 data:
-  class_path: datamodules.AgNewsDataModule
+  class_path: datamodules.TorchTextDataModule
   init_args:
-    kwargs:
-      batch_size: 16
-      num_workers: 2
-      root: data/datasets/AG_NEWS
+    #    kwargs: { 'path': 'data/wmt14', 'name': 'fr-en', 'split': null, 'cache_dir': '..', 'batch_size':32, 'num_workers': 16 }
+    name: AG_NEWS
+    cache_dir: cache
+    batch_size: 16
+    num_workers: 2
 
 optimizer:
   class_path: torch.optim.Adam

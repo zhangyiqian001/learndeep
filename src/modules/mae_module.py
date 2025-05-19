@@ -14,10 +14,10 @@ class MAEModel(nn.Module):
             *,
             encoder,
             decoder_dim,
-            masking_ratio = 0.75,
-            decoder_depth = 1,
-            decoder_heads = 8,
-            decoder_dim_head = 64
+            masking_ratio=0.75,
+            decoder_depth=1,
+            decoder_heads=8,
+            decoder_dim_head=64
     ):
         super().__init__()
         assert masking_ratio > 0 and masking_ratio < 1, 'masking ratio must be kept between 0 and 1'
@@ -37,7 +37,8 @@ class MAEModel(nn.Module):
         self.decoder_dim = decoder_dim
         self.enc_to_dec = nn.Linear(encoder_dim, decoder_dim) if encoder_dim != decoder_dim else nn.Identity()
         self.mask_token = nn.Parameter(torch.randn(decoder_dim))
-        self.decoder = Transformer(dim = decoder_dim, depth = decoder_depth, heads = decoder_heads, dim_head = decoder_dim_head, mlp_dim = decoder_dim * 4)
+        self.decoder = Transformer(dim=decoder_dim, depth=decoder_depth, heads=decoder_heads, dim_head=decoder_dim_head,
+                                   mlp_dim=decoder_dim * 4)
         self.decoder_pos_emb = nn.Embedding(num_patches, decoder_dim)
         self.to_pixels = nn.Linear(decoder_dim, pixel_values_per_patch)
 
@@ -60,12 +61,12 @@ class MAEModel(nn.Module):
             # calculate of patches needed to be masked, and get random indices, dividing it up for mask vs unmasked
 
         num_masked = int(self.masking_ratio * num_patches)
-        rand_indices = torch.rand(batch, num_patches, device = device).argsort(dim = -1)
+        rand_indices = torch.rand(batch, num_patches, device=device).argsort(dim=-1)
         masked_indices, unmasked_indices = rand_indices[:, :num_masked], rand_indices[:, num_masked:]
 
         # get the unmasked tokens to be encoded
 
-        batch_range = torch.arange(batch, device = device)[:, None]
+        batch_range = torch.arange(batch, device=device)[:, None]
         tokens = tokens[batch_range, unmasked_indices]
 
         # get the patches to be masked for the final reconstruction loss
@@ -86,7 +87,7 @@ class MAEModel(nn.Module):
 
         # repeat mask tokens for number of masked, and add the positions using the masked indices derived above
 
-        mask_tokens = repeat(self.mask_token, 'd -> b n d', b = batch, n = num_masked)
+        mask_tokens = repeat(self.mask_token, 'd -> b n d', b=batch, n=num_masked)
         mask_tokens = mask_tokens + self.decoder_pos_emb(masked_indices)
 
         # concat the masked tokens to the decoder tokens and attend with decoder

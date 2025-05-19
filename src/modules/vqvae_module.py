@@ -242,21 +242,6 @@ class VQVAEModule(BaseExtractModule):
         self.model = model
         self.loss = model.loss_function
 
-    def on_before_batch_transfer(self, batch, dataloader_idx: int):
-        return {
-            "inputs": batch[0],
-            "targets": batch[1],
-        }
-
-    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
-
 
 if __name__ == '__main__':
     print(VQVAE(in_channels=3, ))

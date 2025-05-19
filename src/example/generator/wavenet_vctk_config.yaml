@@ -1,11 +1,11 @@
-# lightning.pytorch==2.3.3
+# lightning.pytorch: : 2.3.3
 seed_everything: 0
 trainer:
   accelerator: auto
   strategy: auto
   devices: auto
   num_nodes: 1
-  precision: null
+  precision: 16-mixed
   logger:
     - class_path: lightning.pytorch.loggers.TensorBoardLogger
       init_args:
@@ -90,51 +90,40 @@ trainer:
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: null
 model:
-  class_path: modules.transformer_module.TransformerModule
+  class_path: modules.WaveNetModule
   init_args:
-    model:
-      class_path: modules.transformer_module.TransformerModel
-      init_args:
-        input_vocab_size: 32000
-        embed_size: 512
-        dropout: 0.1
-        num_heads: 8
-        num_encoder_layers: 6
-        num_decoder_layers: 6
-        dim_feedforward: 2048
-        padding_idx: &padding_idx 3
     loss:
       class_path: torch.nn.CrossEntropyLoss
+    model:
+      class_path: modules.WaveNetModel
       init_args:
-        ignore_index: *padding_idx
+        layers: 10
+        blocks: 4
+        dilation_channels: 32
+        residual_channels: 32
+        skip_channels: 256
+        end_channels: 256
+        classes: 256
+        output_length: 32
+        kernel_size: 2
+        bias: False
     metrics:
-      class_path: torchmetrics.text.BLEUScore
-      init_args:
-        n_gram: 1
-    processor_src:
-      class_path: processors.WMT14Processor
-      init_args:
-        file_name: processors/cache/wmt14_en.json
-    processor_tgt:
-      class_path: processors.WMT14Processor
-      init_args:
-        file_name: processors/cache/wmt14_fr.json
 data:
-  class_path: datamodules.AgNewsDataModule
+  class_path: datamodules.VCTKMuLawDataModule
   init_args:
     kwargs:
       batch_size: 16
-      num_workers: 2
-      root: data/datasets/AG_NEWS
-
+      num_workers: 1
+      cache: cache/vctk/*.npy
+      trust_remote_code: False
 optimizer:
   class_path: torch.optim.Adam
   init_args:
-    lr: 1e-4
+    lr: 1e-5
     betas:
       - 0.9
-      - 0.98
-    eps: 1.0e-09
+      - 0.999
+    eps: 1.0e-08
     weight_decay: 0
     amsgrad: false
     foreach: null

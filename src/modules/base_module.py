@@ -4,6 +4,7 @@ import torchvision
 from lightning.pytorch import LightningModule
 from torch import Tensor
 
+
 class BaseModule(LightningModule):
 
     def __init__(self):
@@ -11,6 +12,21 @@ class BaseModule(LightningModule):
 
     def forward(self, *args) -> Tensor:
         return self.model(*args)
+
+    def on_before_batch_transfer(self, batch, dataloader_idx: int):
+        return {
+            "inputs": batch[0],
+            "targets": batch[1],
+        }
+
+    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
+        result = {}
+        for key, value in batch.items():
+            if isinstance(value, dict):
+                result[key] = {k: v.to(device) for k, v in value}
+            else:
+                result[key] = value.to(device)
+        return result
 
 
 class BaseClassificationModule(BaseModule):
@@ -53,8 +69,6 @@ class BaseClassificationModule(BaseModule):
         output = self(inputs)
         return output
 
-    def infer(self, x):
-        pass
 
 class BaseDistillModule(BaseModule):
     def training_step(self, batch, batch_idx: int) -> Tensor:
@@ -77,7 +91,7 @@ class BaseDistillModule(BaseModule):
         else:
             output = self(inputs)
             loss = self.loss(output, target)
-        values = {"val_loss": loss,}
+        values = {"val_loss": loss, }
         try:
             sample_imgs = inputs[:5]
             grid = torchvision.utils.make_grid(sample_imgs)
@@ -99,8 +113,8 @@ class BaseTranslateModule(BaseModule):
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
         output = self(inputs, target)
-        loss = self.loss(output.view(-1, output.shape[-1]), batch['targets'].view(-1))
-        target_text = self.processor_tgt(batch['targets'])
+        loss = self.loss(output.view(-1, output.shape[-1]), target.view(-1))
+        target_text = self.processor_tgt(target)
         infer_text = self.processor_tgt(output.argmax(2))
         acc = 0
         for i in range(len(infer_text)):
@@ -112,8 +126,8 @@ class BaseTranslateModule(BaseModule):
     def validation_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
         output = self(inputs, target)
-        loss = self.loss(output.view(-1, output.shape[-1]), batch['targets'].view(-1))
-        target_text = self.processor_tgt(batch['targets'])
+        loss = self.loss(output.view(-1, output.shape[-1]), target.view(-1))
+        target_text = self.processor_tgt(target)
         infer_text = self.processor_tgt(output.argmax(2))
         acc = 0
         for i in range(len(infer_text)):
@@ -127,36 +141,8 @@ class BaseTranslateModule(BaseModule):
         output = self(inputs)
         return output
 
-    def transfer_batch_to_device(self, batch: dict, device: torch.device, dataloader_idx: int) -> Any:
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
 
-    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        result = {}
-        device = "cpu"
-        torch.cuda.empty_cache()
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
-
-    def infer(self, x):
-        pass
-
-
-class BaseExtractModule(LightningModule):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x) -> Tensor:
-        return self.model(x)
+class BaseExtractModule(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -182,16 +168,8 @@ class BaseExtractModule(LightningModule):
         output = self(inputs)
         return output
 
-    def infer(self, x):
-        pass
 
-
-class BaseGenerate2Module(LightningModule):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x, y) -> Tensor:
-        return self.model(x, y)
+class BaseGenerate2Module(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -216,16 +194,8 @@ class BaseGenerate2Module(LightningModule):
         output = self(inputs)
         return output
 
-    def infer(self, x):
-        pass
 
-
-class BaseGenerate1Module(LightningModule):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x) -> Tensor:
-        return self.model(x)
+class BaseGenerate1Module(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -251,9 +221,6 @@ class BaseGenerate1Module(LightningModule):
         inputs = batch['inputs']
         output = self(inputs)
         return output
-
-    def infer(self, x):
-        pass
 
 
 class BaseRNNGenerateModule(LightningModule):
@@ -288,12 +255,7 @@ class BaseRNNGenerateModule(LightningModule):
         pass
 
 
-class BaseSegmentationModule(LightningModule):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x) -> Tensor:
-        return self.model(x)
+class BaseSegmentationModule(BaseModule):
 
     def training_step(self, batch, batch_idx: int) -> Tensor:
         inputs, target = batch['inputs'], batch['targets']
@@ -315,6 +277,3 @@ class BaseSegmentationModule(LightningModule):
         inputs = batch['inputs']
         output = self(inputs)
         return output
-
-    def infer(self, x):
-        pass

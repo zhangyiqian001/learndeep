@@ -4,6 +4,7 @@ import torchmetrics
 from modules.base_module import BaseClassificationModule
 from torchvision.models import SwinTransformer
 
+
 class SwinTransformerModule(BaseClassificationModule):
 
     def __init__(self, model, loss, metrics):

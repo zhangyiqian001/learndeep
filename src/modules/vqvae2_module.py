@@ -190,7 +190,7 @@ class VQVAE2(nn.Module):
             n_res_block,
             n_res_channel,
             stride=4,
-            )
+        )
 
     def forward(self, input):
         quant_t, quant_b, diff, _, _ = self.encode(input)
@@ -238,7 +238,7 @@ class VQVAE2(nn.Module):
             self,
             args,
             **kwargs
-        ) -> dict:
+    ) -> dict:
         """
         :param args:
         :param kwargs:
@@ -261,21 +261,6 @@ class VQVAE2Module(BaseExtractModule):
         super().__init__()
         self.model = model
         self.loss = model.loss_function
-
-    def on_before_batch_transfer(self, batch, dataloader_idx: int):
-        return {
-            "inputs": batch[0],
-            "targets": batch[1],
-        }
-
-    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
 
 
 if __name__ == '__main__':

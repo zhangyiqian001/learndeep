@@ -4,28 +4,7 @@ import torch
 from torch import Tensor, nn
 
 from modules.base_module import BaseTranslateModule
-
-
-class PositionalEncoding(nn.Module):
-    def __init__(
-            self,
-            emb_size,
-            dropout,
-            maxlen=40960
-    ):
-        super().__init__()
-        den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
-        pos = torch.arange(0, maxlen).reshape(maxlen, 1)
-        pos_embedding = torch.zeros((maxlen, emb_size))
-        pos_embedding[:, 0::2] = torch.sin(pos * den)
-        pos_embedding[:, 1::2] = torch.cos(pos * den)
-        pos_embedding = pos_embedding.unsqueeze(0)
-
-        self.dropout = nn.Dropout(dropout)
-        self.register_buffer('pos_embedding', pos_embedding)
-
-    def forward(self, x):
-        return self.dropout(x + self.pos_embedding[:, :x.size(1), :])
+from modules.common_module import PositionalEncoding
 
 
 class TransformerModel(nn.Module):
@@ -100,8 +79,10 @@ class TransformerModule(BaseTranslateModule):
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         if self.processor_src is not None and self.processor_tgt is not None:
-            input_ids = self.processor_src(batch['translation']['en'])
-            target_ids = self.processor_tgt(batch['translation']['fr'])
+            # input_ids = self.processor_src(batch['translation']['en'])
+            # target_ids = self.processor_tgt(batch['translation']['fr'])
+            input_ids = self.processor_src(batch[0])
+            target_ids = self.processor_tgt(batch[1])
             return {
                 "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
                 "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))

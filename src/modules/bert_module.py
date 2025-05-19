@@ -2,7 +2,7 @@ import torch
 from torch import nn, Tensor
 
 from modules.base_module import BaseTranslateModule
-from modules.transformer_module import PositionalEncoding
+from modules.common_module import PositionalEncoding
 
 
 class BertModel(nn.Module):
@@ -82,8 +82,10 @@ class BertModule(BaseTranslateModule):
 
     def on_before_batch_transfer(self, batch, dataloader_idx: int):
         if self.processor_src is not None and self.processor_tgt is not None:
-            input_ids = self.processor_src(batch['translation']['en'])
-            target_ids = self.processor_tgt(batch['translation']['fr'])
+            # input_ids = self.processor_src(batch['translation']['en'])
+            # target_ids = self.processor_tgt(batch['translation']['fr'])
+            input_ids = self.processor_src(batch[0])
+            target_ids = self.processor_tgt(batch[1])
             return {
                 "inputs": torch.tensor(list(map(lambda x: (x.ids), input_ids))),
                 "targets": torch.tensor(list(map(lambda x: (x.ids), target_ids)))

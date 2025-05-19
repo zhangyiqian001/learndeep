@@ -1,6 +1,3 @@
-from typing import Any
-
-import torch
 from torch import nn
 
 from modules.base_module import BaseClassificationModule
@@ -17,21 +14,6 @@ class AlexNetModuleBase(BaseClassificationModule):
         self.model = model
         self.loss = loss
         self.metrics = metrics
-
-    def on_before_batch_transfer(self, batch: Any, dataloader_idx: int) -> Any:
-        return {
-            "inputs": batch[0],
-            "targets": batch[1],
-        }
-
-    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int) -> Any:
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
 
 
 class AlexNetModule1x3(AlexNetModuleBase):

@@ -13,7 +13,7 @@ lightning = {extras = ["pytorch-extra"], version = "2.5.1"}
 torch = { version = "2.5.1", source="torch" }
 torchaudio = { version = "2.5.1", source="torch" }
 torchvision = { version = "0.20.1", source="torch" }
-jsonargparse = {extras = ["signatures"], version = "4.35.0"}
+jsonargparse = {extras = ["signatures", "ruyaml"], version = "4.35.0"}
 transformers = "^4.46.3"
 datasets = "^3.1.0"
 tensorboardx = "^2.6.2.2"
@@ -21,12 +21,15 @@ rich = "^12.3.0"
 einops = "^0.8.1"
 gym = "0.25.2"
 matplotlib = "^3.10.1"
-ruyaml = "^0.91.0"
 scikit-learn = "^1.6.1"
 llvmlite = "^0.44.0"
 librosa = "^0.11.0"
 jupyter = "^1.1.1"
 seaborn = "^0.13.2"
+ultralytics = "^8.3.128"
+unidecode = "^1.4.0"
+inflect = "^7.5.0"
+hmmlearn = "^0.3.3"
 
 [[tool.poetry.source]]
 name = "orgin"

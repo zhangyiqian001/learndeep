@@ -2,82 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from modules.base_module import BaseGenerate2Module
-
-
-def weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        try:
-            nn.init.xavier_uniform_(m.weight.data)
-            m.bias.data.fill_(0)
-        except AttributeError:
-            print("Skipping initialization of ", classname)
-
-
-class GatedActivation(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x):
-        x, y = x.chunk(2, dim=1)
-        return F.tanh(x) * F.sigmoid(y)
-
-
-class GatedMaskedConv2d(nn.Module):
-    def __init__(self, mask_type, dim, kernel, residual=True, n_classes=10):
-        super().__init__()
-        assert kernel % 2 == 1, print("Kernel size must be odd")
-        self.mask_type = mask_type
-        self.residual = residual
-
-        self.class_cond_embedding = nn.Embedding(
-            n_classes, 2 * dim
-        )
-
-        kernel_shp = (kernel // 2 + 1, kernel)  # (ceil(n/2), n)
-        padding_shp = (kernel // 2, kernel // 2)
-        self.vert_stack = nn.Conv2d(
-            dim, dim * 2,
-            kernel_shp, 1, padding_shp
-        )
-
-        self.vert_to_horiz = nn.Conv2d(2 * dim, 2 * dim, 1)
-
-        kernel_shp = (1, kernel // 2 + 1)
-        padding_shp = (0, kernel // 2)
-        self.horiz_stack = nn.Conv2d(
-            dim, dim * 2,
-            kernel_shp, 1, padding_shp
-        )
-
-        self.horiz_resid = nn.Conv2d(dim, dim, 1)
-
-        self.gate = GatedActivation()
-
-    def make_causal(self):
-        self.vert_stack.weight.data[:, :, -1].zero_()  # Mask final row
-        self.horiz_stack.weight.data[:, :, :, -1].zero_()  # Mask final column
-
-    def forward(self, x_v, x_h, h):
-        if self.mask_type == 'A':
-            self.make_causal()
-
-        h = self.class_cond_embedding(h)
-        h_vert = self.vert_stack(x_v)
-        h_vert = h_vert[:, :, :x_v.size(-1), :]
-        out_v = self.gate(h_vert + h[:, :, None, None])
-
-        h_horiz = self.horiz_stack(x_h)
-        h_horiz = h_horiz[:, :, :, :x_h.size(-2)]
-        v2h = self.vert_to_horiz(h_vert)
-
-        out = self.gate(v2h + h_horiz + h[:, :, None, None])
-        if self.residual:
-            out_h = self.horiz_resid(out) + x_h
-        else:
-            out_h = self.horiz_resid(out)
-
-        return out_v, out_h
+from modules.common_module import GatedMaskedConv2d
 
 
 class GatedPixelCNN(nn.Module):
@@ -115,7 +40,6 @@ class GatedPixelCNN(nn.Module):
             nn.Conv2d(512, input_dim, 1)
         )
         self.input_dim = input_dim
-        self.apply(weights_init)
 
     def forward(self, x, label):
         shp = x.size() + (-1,)
@@ -156,12 +80,3 @@ class GatedPixelCNNModule(BaseGenerate2Module):
             "inputs": batch[0][:, 0].long(),
             "targets": batch[1],
         }
-
-    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result

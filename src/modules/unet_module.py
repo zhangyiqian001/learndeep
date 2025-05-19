@@ -125,15 +125,6 @@ class UNetModule(BaseSegmentationModule):
             "targets": batch['mask'],
         }
 
-    def transfer_batch_to_device(self, batch, device: torch.device, dataloader_idx: int):
-        result = {}
-        for key, value in batch.items():
-            if isinstance(value, dict):
-                result[key] = {k: v.to(device) for k, v in value}
-            else:
-                result[key] = value.to(device)
-        return result
-
 
 if __name__ == '__main__':
     print(UNetModel(3, 10).half())

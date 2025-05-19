@@ -11,6 +11,8 @@ from .unet_module import UNetModule
 from .vit_module import ViTModule
 from .distillvit_module import DistillableViT, DistillWrapper
 from .swintransformer_module import SwinTransformerModule
+from .wavenet_module import WaveNetModule, WaveNetModel
+import hmmlearn
 
 __all__ = [
     "LSTMGenerateModule",
@@ -27,5 +29,8 @@ __all__ = [
     "DistillableViT",
     "DistillWrapper",
     "SwinTransformerModule",
+    "WaveNetModule",
+    "WaveNetModel"
 ]
+
 
