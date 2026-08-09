@@ -1,3 +1,5 @@
+
+
 # learndeep
 
 ## 项目介绍
@@ -33,7 +35,7 @@
 ### 安装
 1. 创建 conda environment
     ```shell
-    conda create -n learndeep python=3.10
+    conda create -n learndeep python=3.12
     conda activate learndeep
    git clone --recursive https://github.com/zhangyiqian001/learndeep.git
     ```
